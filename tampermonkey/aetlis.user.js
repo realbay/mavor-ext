@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Aetlis client
 // @namespace    aetlis
-// @version      1.1.39
+// @version      1.1.40
 // @description  Loads the Aetlis client instead of the site copies of main.js and style.css.
 // @match        *://aetlis.io/*
 // @match        *://*.aetlis.io/*
@@ -13,41 +13,26 @@
 
 (function () {
     "use strict";
-    var VER = "1.1.39";
+    var VER = "1.1.40";
     var BASE = "https://aetlis-discord-auth.officialbayvanis.workers.dev/";
     var HOST = "officialbayvanis.workers.dev";
+    var KEY = "aetlis-client-rewritten";
 
-    function pathOf(url) {
-        try {
-            return new URL(String(url || ""), location.href).pathname;
-        } catch (ignore) {
-            return "";
-        }
-    }
-
-    function isMain(url) {
-        return String(url).indexOf(HOST) === -1 && /\/js\/main\.js$/.test(pathOf(url));
-    }
-
-    function isCss(url) {
-        return String(url).indexOf(HOST) === -1 && /\/css\/style\.css$/.test(pathOf(url));
-    }
-
-    // The client decides where to load wasm from document.currentScript.
-    // Point that at aetlis.io even though the script file comes from the worker.
-    var currentDesc = Object.getOwnPropertyDescriptor(Document.prototype, "currentScript");
-    var standIn = document.createElement("script");
-    Object.defineProperty(standIn, "src", {
-        configurable: true,
-        get: function () {
-            return location.origin + "/js/main.js";
-        }
-    });
-    if (currentDesc && currentDesc.get) {
+    function installSpoof() {
+        var desc = Object.getOwnPropertyDescriptor(Document.prototype, "currentScript");
+        var standIn = document.createElement("script");
+        Object.defineProperty(standIn, "src", {
+            configurable: true,
+            get: function () {
+                return location.origin + "/js/main.js";
+            }
+        });
+        if (!desc || !desc.get)
+            return;
         Object.defineProperty(Document.prototype, "currentScript", {
             configurable: true,
             get: function () {
-                var real = currentDesc.get.call(this);
+                var real = desc.get.call(this);
                 if (real && real.getAttribute("data-aetlis-client") === "1")
                     return standIn;
                 return real;
@@ -55,53 +40,48 @@
         });
     }
 
-    function swapScript(node) {
-        var src = node.getAttribute("src") || "";
-        if (!isMain(src) || node.getAttribute("data-aetlis-client") === "1")
-            return;
-        node.setAttribute("data-aetlis-client", "1");
-        node.src = BASE + "js/main.js?v=" + VER;
+    function already() {
+        if (sessionStorage.getItem(KEY) === "1")
+            return true;
+        return !!document.querySelector("[data-aetlis-client]");
     }
 
-    function swapLink(node) {
-        var href = node.getAttribute("href") || "";
-        if (!isCss(href) || node.getAttribute("data-aetlis-client") === "1")
-            return;
-        node.setAttribute("data-aetlis-client", "1");
-        node.href = BASE + "css/style.css?v=" + VER;
+    if (already()) {
+        sessionStorage.removeItem(KEY);
+        installSpoof();
+        return;
     }
 
-    function visit(node) {
-        if (!node || node.nodeType !== 1)
+    // Chrome fetches main.js from the HTML before a userscript can edit the tag.
+    // Stop that load and write the page again with the worker files in place.
+    window.stop();
+    fetch(location.href).then(function (res) {
+        return res.text();
+    }).then(function (html) {
+        var main = BASE + "js/main.js?v=" + VER;
+        var css = BASE + "css/style.css?v=" + VER;
+        var next = html.replace(/(<script\b[^>]*\bsrc\s*=\s*["'])([^"']*js\/main\.js[^"']*)(["'])/i, function (full, pre, url, post) {
+            if (url.indexOf(HOST) !== -1)
+                return full;
+            return pre + main + '" data-aetlis-client="1' + post;
+        });
+        next = next.replace(/(<link\b[^>]*\bhref\s*=\s*["'])([^"']*css\/style\.css[^"']*)(["'])/i, function (full, pre, url, post) {
+            if (url.indexOf(HOST) !== -1)
+                return full;
+            return pre + css + '" data-aetlis-client="1' + post;
+        });
+        if (next === html)
             return;
-        if (node.tagName === "SCRIPT")
-            swapScript(node);
-        else if (node.tagName === "LINK")
-            swapLink(node);
-        if (!node.querySelectorAll)
-            return;
-        var scripts = node.querySelectorAll("script[src]");
-        var i;
-        for (i = 0; i < scripts.length; i++)
-            swapScript(scripts[i]);
-        var links = node.querySelectorAll("link[href]");
-        for (i = 0; i < links.length; i++)
-            swapLink(links[i]);
-    }
-
-    var obs = new MutationObserver(function (list) {
-        var i, j, nodes;
-        for (i = 0; i < list.length; i++) {
-            nodes = list[i].addedNodes;
-            for (j = 0; j < nodes.length; j++)
-                visit(nodes[j]);
-        }
+        var boot = "<script>(function(){var d=Object.getOwnPropertyDescriptor(Document.prototype,'currentScript');var s=document.createElement('script');Object.defineProperty(s,'src',{configurable:true,get:function(){return location.origin+'/js/main.js';}});if(d&&d.get)Object.defineProperty(Document.prototype,'currentScript',{configurable:true,get:function(){var r=d.get.call(this);if(r&&r.getAttribute('data-aetlis-client')==='1')return s;return r;}});})();<\/script>";
+        next = next.replace(/<head[^>]*>/i, function (open) {
+            return open + boot;
+        });
+        next = next.replace(/<\/body>/i, "<script>try{sessionStorage.removeItem('" + KEY + "')}catch(e){}<\/script></body>");
+        sessionStorage.setItem(KEY, "1");
+        document.open();
+        document.write(next);
+        document.close();
+    }).catch(function () {
+        sessionStorage.removeItem(KEY);
     });
-
-    if (document.documentElement) {
-        obs.observe(document.documentElement, { childList: true, subtree: true });
-        visit(document.documentElement);
-    } else {
-        obs.observe(document, { childList: true, subtree: true });
-    }
 })();
