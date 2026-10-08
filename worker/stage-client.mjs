@@ -30,10 +30,11 @@ writeFileSync(join(pub, "index.html"), `<!DOCTYPE html>
 </head>
 <body>
   <h1>Tampermonkey</h1>
-  <p>Turn the unpacked extension off. Then paste this script into Tampermonkey.</p>
+  <p>Turn the unpacked extension off. Tampermonkey’s default mode does not run at the start of the page, so the script cannot replace it.</p>
   <ol>
-    <li>Open the Tampermonkey dashboard and create a new script.</li>
-    <li>Select all, delete it, paste the script below, then File → Save.</li>
+    <li>On <code>chrome://extensions</code>, open Tampermonkey and turn on <b>Allow user scripts</b>.</li>
+    <li>Open the Tampermonkey dashboard, then Settings. Set the config mode to <b>Advanced</b>. Set <b>Content Script API</b> to <b>UserScripts API Dynamic</b>.</li>
+    <li>Create a new script, or open the old Aetlis one. Select all, paste the script below, then File → Save. The header must say <code>@version 1.1.47</code>.</li>
     <li>Open <a href="https://aetlis.io/">aetlis.io</a>. It should say <b>Loading Aetlis...</b> first, then the Mavor button appears.</li>
   </ol>
   <textarea id="src" readonly>${script.replace(/</g, "&lt;")}</textarea>

@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         Aetlis client
 // @namespace    aetlis
-// @version      1.1.46
+// @version      1.1.47
 // @description  Loads the Aetlis client through the API.
 // @include      *://aetlis.io/*
 // @include      *://*.aetlis.io/*
 // @match        *://aetlis.io/*
 // @match        *://*.aetlis.io/*
 // @run-at       document-start
+// @inject-into  page
 // @grant        none
 // @updateURL    https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/aetlis.user.js
 // @downloadURL  https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/aetlis.user.js
