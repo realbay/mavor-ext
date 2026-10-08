@@ -36,6 +36,7 @@ writeFileSync(join(pub, "index.html"), `<!DOCTYPE html>
     <li>Install Tampermonkey from the Chrome Web Store.</li>
     <li>Open <code>chrome://extensions</code>, click Tampermonkey, and turn on <b>Allow user scripts</b>. If that switch is missing, turn on Developer mode first.</li>
     <li>Then use the install button. If a tampermonkey.net page stays open and nothing else happens, the switch above is still off.</li>
+    <li>Open <a href="https://aetlis.io/?mavor">aetlis.io</a>. The address should become <code>aetlis.io/?mavor</code> and the menu should load.</li>
   </ol>
   <p><a class="btn" href="/tampermonkey/aetlis.user.js">Install</a></p>
   <h2>If that page stays open</h2>

@@ -1,8 +1,10 @@
 // ==UserScript==
 // @name         Aetlis client
 // @namespace    aetlis
-// @version      1.1.42
-// @description  Opens the Aetlis client at aetlis.io/mavor.
+// @version      1.1.43
+// @description  Opens the Aetlis client the same way the Vanis loader does.
+// @include      *://aetlis.io/*
+// @include      *://*.aetlis.io/*
 // @match        *://aetlis.io/*
 // @match        *://*.aetlis.io/*
 // @run-at       document-start
@@ -13,18 +15,40 @@
 
 (function () {
     "use strict";
-    var path = location.pathname.replace(/\/+$/, "");
-    if (path !== "/mavor") {
+    var host = location.hostname;
+    if (host !== "aetlis.io" && host !== "www.aetlis.io")
+        return;
+
+    // vanis.io/ea is a real page. /mavor is only a 404, so the script never starts there.
+    var target = "https://aetlis.io/?mavor";
+    var path = location.pathname.replace(/\/+$/, "") || "/";
+    var onClient = host === "aetlis.io" && path === "/" && /(?:^|[?&])mavor(?:&|$)/.test(location.search);
+    if (!onClient) {
         window.stop();
-        location.replace(location.origin + "/mavor");
+        location.href = target;
         return;
     }
     if (window.__aetlisMavor)
         return;
     window.__aetlisMavor = 1;
 
-    var VER = "1.1.42";
+    var VER = "1.1.43";
     var BASE = "https://aetlis-discord-auth.officialbayvanis.workers.dev/";
+
+    function dropOriginal(node) {
+        if (!node || node.nodeType !== 1 || !node.getAttribute)
+            return;
+        var src = node.getAttribute("src") || node.getAttribute("href") || "";
+        if ((node.tagName === "SCRIPT" && /js\/(?:main|vendor)\.js/i.test(src)) || (node.tagName === "LINK" && /css\/style\.css/i.test(src)))
+            node.remove();
+    }
+
+    var blocker = new MutationObserver(function (list) {
+        list.forEach(function (rec) {
+            rec.addedNodes.forEach(dropOriginal);
+        });
+    });
+    blocker.observe(document, { childList: true, subtree: true });
 
     function installSpoof() {
         var desc = Object.getOwnPropertyDescriptor(Document.prototype, "currentScript");
@@ -56,9 +80,7 @@
         (document.head || document.documentElement).appendChild(script);
     }
 
-    // Same idea as the Vanis loader: wipe the 404, write the menu, then run the scripts inline.
-    window.stop();
-    document.open();
+    // custom-loader.user.js fetches the page first, then opens and writes it. Stopping first leaves a blank page.
     fetch(location.origin + "/").then(function (res) {
         return res.text();
     }).then(function (html) {
@@ -69,8 +91,10 @@
         next = next.replace(/<head[^>]*>/i, function (open) {
             return open + '<base href="' + location.origin + '/">';
         });
+        document.open();
         document.write(next);
         document.close();
+        blocker.disconnect();
         installSpoof();
         return fetch(BASE + "css/style.css?v=" + VER).then(function (res) {
             return res.text();
