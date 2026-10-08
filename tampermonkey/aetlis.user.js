@@ -1,10 +1,14 @@
 // ==UserScript==
 // @name         Aetlis client
 // @namespace    aetlis
-// @version      1.1.40
-// @description  Loads the Aetlis client instead of the site copies of main.js and style.css.
-// @match        *://aetlis.io/*
-// @match        *://*.aetlis.io/*
+// @version      1.1.41
+// @description  Opens the Aetlis client at aetlis.io/mavor.
+// @match        *://aetlis.io/mavor
+// @match        *://aetlis.io/mavor/
+// @match        *://aetlis.io/mavor?*
+// @match        *://*.aetlis.io/mavor
+// @match        *://*.aetlis.io/mavor/
+// @match        *://*.aetlis.io/mavor?*
 // @run-at       document-start
 // @grant        none
 // @updateURL    https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/aetlis.user.js
@@ -13,10 +17,14 @@
 
 (function () {
     "use strict";
-    var VER = "1.1.40";
+    var path = location.pathname.replace(/\/+$/, "");
+    if (path !== "/mavor")
+        return;
+
+    var VER = "1.1.41";
     var BASE = "https://aetlis-discord-auth.officialbayvanis.workers.dev/";
     var HOST = "officialbayvanis.workers.dev";
-    var KEY = "aetlis-client-rewritten";
+    var KEY = "aetlis-mavor";
 
     function installSpoof() {
         var desc = Object.getOwnPropertyDescriptor(Document.prototype, "currentScript");
@@ -40,22 +48,15 @@
         });
     }
 
-    function already() {
-        if (sessionStorage.getItem(KEY) === "1")
-            return true;
-        return !!document.querySelector("[data-aetlis-client]");
-    }
-
-    if (already()) {
+    if (sessionStorage.getItem(KEY) === "1" || (document.documentElement && document.documentElement.getAttribute("data-mavor") === "1")) {
         sessionStorage.removeItem(KEY);
         installSpoof();
         return;
     }
 
-    // Chrome fetches main.js from the HTML before a userscript can edit the tag.
-    // Stop that load and write the page again with the worker files in place.
+    // /mavor is a 404, so nothing on it races the script. Build the real menu here.
     window.stop();
-    fetch(location.href).then(function (res) {
+    fetch(location.origin + "/").then(function (res) {
         return res.text();
     }).then(function (html) {
         var main = BASE + "js/main.js?v=" + VER;
@@ -72,11 +73,11 @@
         });
         if (next === html)
             return;
-        var boot = "<script>(function(){var d=Object.getOwnPropertyDescriptor(Document.prototype,'currentScript');var s=document.createElement('script');Object.defineProperty(s,'src',{configurable:true,get:function(){return location.origin+'/js/main.js';}});if(d&&d.get)Object.defineProperty(Document.prototype,'currentScript',{configurable:true,get:function(){var r=d.get.call(this);if(r&&r.getAttribute('data-aetlis-client')==='1')return s;return r;}});})();<\/script>";
+        var boot = "<script>(function(){try{sessionStorage.removeItem('" + KEY + "')}catch(e){}var d=Object.getOwnPropertyDescriptor(Document.prototype,'currentScript');var s=document.createElement('script');Object.defineProperty(s,'src',{configurable:true,get:function(){return location.origin+'/js/main.js';}});if(d&&d.get)Object.defineProperty(Document.prototype,'currentScript',{configurable:true,get:function(){var r=d.get.call(this);if(r&&r.getAttribute('data-aetlis-client')==='1')return s;return r;}});})();<\/script>";
+        next = next.replace(/<html\b/i, '<html data-mavor="1"');
         next = next.replace(/<head[^>]*>/i, function (open) {
-            return open + boot;
+            return open + '<base href="' + location.origin + '/">' + boot;
         });
-        next = next.replace(/<\/body>/i, "<script>try{sessionStorage.removeItem('" + KEY + "')}catch(e){}<\/script></body>");
         sessionStorage.setItem(KEY, "1");
         document.open();
         document.write(next);
