@@ -5,10 +5,10 @@ import { fileURLToPath } from "url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const pub = join(root, "worker", "public");
 rmSync(pub, { recursive: true, force: true });
+mkdirSync(join(pub, "tampermonkey"), { recursive: true });
+cpSync(join(root, "tampermonkey", "aetlis.user.js"), join(pub, "tampermonkey", "aetlis.user.js"));
+cpSync(join(root, "tampermonkey", "shell.html"), join(pub, "tampermonkey", "menu.txt"));
 const scriptPath = join(root, "tampermonkey", "aetlis.user.js");
-const dest = join(pub, "tampermonkey", "aetlis.user.js");
-mkdirSync(dirname(dest), { recursive: true });
-cpSync(scriptPath, dest);
 const script = readFileSync(scriptPath, "utf8");
 writeFileSync(join(pub, "_headers"), `/*
   Access-Control-Allow-Origin: *
@@ -30,12 +30,11 @@ writeFileSync(join(pub, "index.html"), `<!DOCTYPE html>
 </head>
 <body>
   <h1>Tampermonkey</h1>
-  <p>Turn the unpacked extension off. Tampermonkey’s default mode does not run at the start of the page, so the script cannot replace it.</p>
+  <p>Same order as the Rise script. Turn the unpacked extension off.</p>
   <ol>
     <li>On <code>chrome://extensions</code>, open Tampermonkey and turn on <b>Allow user scripts</b>.</li>
-    <li>Open the Tampermonkey dashboard, then Settings. Set the config mode to <b>Advanced</b>. Set <b>Content Script API</b> to <b>UserScripts API Dynamic</b>.</li>
-    <li>Create a new script, or open the old Aetlis one. Select all, paste the script below, then File → Save. The header must say <code>@version 1.1.47</code>.</li>
-    <li>Open <a href="https://aetlis.io/">aetlis.io</a>. It should say <b>Loading Aetlis...</b> first, then the Mavor button appears.</li>
+    <li>Create a new script, or open the old Aetlis one. Select all, paste the script below, then File → Save. The header must say <code>@run-at document-end</code> and <code>@version 1.1.49</code>.</li>
+    <li>Open <a href="https://aetlis.io/">aetlis.io</a> and wait for the Mavor button.</li>
   </ol>
   <textarea id="src" readonly>${script.replace(/</g, "&lt;")}</textarea>
   <p><button type="button" id="copy">Copy script</button></p>
