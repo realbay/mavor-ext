@@ -1,14 +1,10 @@
 // ==UserScript==
 // @name         Aetlis client
 // @namespace    aetlis
-// @version      1.1.41
+// @version      1.1.42
 // @description  Opens the Aetlis client at aetlis.io/mavor.
-// @match        *://aetlis.io/mavor
-// @match        *://aetlis.io/mavor/
-// @match        *://aetlis.io/mavor?*
-// @match        *://*.aetlis.io/mavor
-// @match        *://*.aetlis.io/mavor/
-// @match        *://*.aetlis.io/mavor?*
+// @match        *://aetlis.io/*
+// @match        *://*.aetlis.io/*
 // @run-at       document-start
 // @grant        none
 // @updateURL    https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/aetlis.user.js
@@ -18,13 +14,17 @@
 (function () {
     "use strict";
     var path = location.pathname.replace(/\/+$/, "");
-    if (path !== "/mavor")
+    if (path !== "/mavor") {
+        window.stop();
+        location.replace(location.origin + "/mavor");
         return;
+    }
+    if (window.__aetlisMavor)
+        return;
+    window.__aetlisMavor = 1;
 
-    var VER = "1.1.41";
+    var VER = "1.1.42";
     var BASE = "https://aetlis-discord-auth.officialbayvanis.workers.dev/";
-    var HOST = "officialbayvanis.workers.dev";
-    var KEY = "aetlis-mavor";
 
     function installSpoof() {
         var desc = Object.getOwnPropertyDescriptor(Document.prototype, "currentScript");
@@ -48,41 +48,51 @@
         });
     }
 
-    if (sessionStorage.getItem(KEY) === "1" || (document.documentElement && document.documentElement.getAttribute("data-mavor") === "1")) {
-        sessionStorage.removeItem(KEY);
-        installSpoof();
-        return;
+    function addCode(code, client) {
+        var script = document.createElement("script");
+        if (client)
+            script.setAttribute("data-aetlis-client", "1");
+        script.textContent = code;
+        (document.head || document.documentElement).appendChild(script);
     }
 
-    // /mavor is a 404, so nothing on it races the script. Build the real menu here.
+    // Same idea as the Vanis loader: wipe the 404, write the menu, then run the scripts inline.
     window.stop();
+    document.open();
     fetch(location.origin + "/").then(function (res) {
         return res.text();
     }).then(function (html) {
-        var main = BASE + "js/main.js?v=" + VER;
-        var css = BASE + "css/style.css?v=" + VER;
-        var next = html.replace(/(<script\b[^>]*\bsrc\s*=\s*["'])([^"']*js\/main\.js[^"']*)(["'])/i, function (full, pre, url, post) {
-            if (url.indexOf(HOST) !== -1)
-                return full;
-            return pre + main + '" data-aetlis-client="1' + post;
-        });
-        next = next.replace(/(<link\b[^>]*\bhref\s*=\s*["'])([^"']*css\/style\.css[^"']*)(["'])/i, function (full, pre, url, post) {
-            if (url.indexOf(HOST) !== -1)
-                return full;
-            return pre + css + '" data-aetlis-client="1' + post;
-        });
-        if (next === html)
-            return;
-        var boot = "<script>(function(){try{sessionStorage.removeItem('" + KEY + "')}catch(e){}var d=Object.getOwnPropertyDescriptor(Document.prototype,'currentScript');var s=document.createElement('script');Object.defineProperty(s,'src',{configurable:true,get:function(){return location.origin+'/js/main.js';}});if(d&&d.get)Object.defineProperty(Document.prototype,'currentScript',{configurable:true,get:function(){var r=d.get.call(this);if(r&&r.getAttribute('data-aetlis-client')==='1')return s;return r;}});})();<\/script>";
-        next = next.replace(/<html\b/i, '<html data-mavor="1"');
+        var vendorMatch = html.match(/src=["']([^"']*js\/vendor\.js[^"']*)["']/i);
+        var vendorUrl = vendorMatch ? new URL(vendorMatch[1], location.origin + "/").href : location.origin + "/js/vendor.js";
+        var next = html.replace(/<script\b[^>]*\bsrc\s*=\s*["'][^"']*js\/(?:main|vendor)\.js[^"']*["'][^>]*>\s*<\/script>/gi, "");
+        next = next.replace(/<link\b[^>]*\bhref\s*=\s*["'][^"']*css\/style\.css[^"']*["'][^>]*>/gi, "");
         next = next.replace(/<head[^>]*>/i, function (open) {
-            return open + '<base href="' + location.origin + '/">' + boot;
+            return open + '<base href="' + location.origin + '/">';
         });
-        sessionStorage.setItem(KEY, "1");
-        document.open();
         document.write(next);
         document.close();
-    }).catch(function () {
-        sessionStorage.removeItem(KEY);
+        installSpoof();
+        return fetch(BASE + "css/style.css?v=" + VER).then(function (res) {
+            return res.text();
+        }).then(function (css) {
+            var style = document.createElement("style");
+            style.textContent = css;
+            document.head.appendChild(style);
+            return fetch(vendorUrl).then(function (res) {
+                return res.text();
+            });
+        }).then(function (vendor) {
+            addCode(vendor, false);
+            return fetch(BASE + "js/main.js?v=" + VER).then(function (res) {
+                return res.text();
+            });
+        }).then(function (main) {
+            addCode(main, true);
+        });
+    }).catch(function (err) {
+        document.open();
+        document.write("<p>Aetlis client failed to load.</p>");
+        document.close();
+        console.error(err);
     });
 })();
