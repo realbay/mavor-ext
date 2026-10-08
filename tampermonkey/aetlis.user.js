@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Aetlis client
 // @namespace    aetlis
-// @version      1.1.45
+// @version      1.1.46
 // @description  Loads the Aetlis client through the API.
 // @include      *://aetlis.io/*
 // @include      *://*.aetlis.io/*
 // @match        *://aetlis.io/*
 // @match        *://*.aetlis.io/*
-// @run-at       document-idle
+// @run-at       document-start
 // @grant        none
 // @updateURL    https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/aetlis.user.js
 // @downloadURL  https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/aetlis.user.js
@@ -23,6 +23,12 @@
     window.__aetlisMavor = 1;
 
     var BASE = "https://aetlis-discord-auth.officialbayvanis.workers.dev/client/";
+
+    // Chrome's userscript mode skips scripts that are not document-start.
+    // Open the document the same way the Vanis loader does, then fill it in.
+    document.open("text/html", "replace");
+    document.write("<!DOCTYPE html><html><head><meta charset='utf-8'><title>Aetlis</title></head><body style='margin:0;background:#111;color:#eee;font:18px sans-serif'><p style='padding:24px'>Loading Aetlis...</p></body></html>");
+    document.close();
 
     function installSpoof() {
         var desc = Object.getOwnPropertyDescriptor(Document.prototype, "currentScript");
@@ -64,7 +70,7 @@
         next = next.replace(/<head[^>]*>/i, function (open) {
             return open + '<base href="' + location.origin + '/">';
         });
-        document.open();
+        document.open("text/html", "replace");
         document.write(next);
         document.close();
         installSpoof();
@@ -91,7 +97,7 @@
         });
     }).catch(function (err) {
         window.__aetlisMavor = 0;
-        document.open();
+        document.open("text/html", "replace");
         document.write("<p>Aetlis client failed to load. Allow aetlis-discord-auth.officialbayvanis.workers.dev in uBlock or Adblock, then refresh.</p>");
         document.close();
         console.error(err);

@@ -34,7 +34,7 @@ writeFileSync(join(pub, "index.html"), `<!DOCTYPE html>
   <ol>
     <li>Open the Tampermonkey dashboard and create a new script.</li>
     <li>Select all, delete it, paste the script below, then File → Save.</li>
-    <li>Open <a href="https://aetlis.io/">aetlis.io</a>. The normal menu shows for a second, then the Mavor button appears.</li>
+    <li>Open <a href="https://aetlis.io/">aetlis.io</a>. It should say <b>Loading Aetlis...</b> first, then the Mavor button appears.</li>
   </ol>
   <textarea id="src" readonly>${script.replace(/</g, "&lt;")}</textarea>
   <p><button type="button" id="copy">Copy script</button></p>
