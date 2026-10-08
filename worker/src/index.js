@@ -219,8 +219,75 @@ async function handleAdmin(env, body) {
     return json(400, { ok: false, error: "Unknown action" });
 }
 
+const CLIENT_FILES = {
+    "js/main.js": "text/javascript; charset=utf-8",
+    "css/style.css": "text/css; charset=utf-8"
+};
+
+async function githubRaw(env, rel) {
+    const headers = {
+        Authorization: "Bearer " + env.GITHUB_TOKEN,
+        Accept: "application/vnd.github.raw",
+        "User-Agent": "aetlis-discord-auth",
+        "X-GitHub-Api-Version": "2022-11-28"
+    };
+    const file = await fetch("https://api.github.com/repos/realbay/mavor-ext/contents/" + rel + "?ref=main", { headers: headers });
+    const type = file.headers.get("content-type") || "";
+    if (file.ok && type.indexOf("text/html") === -1 && type.indexOf("json") === -1)
+        return file;
+    const meta = await fetch("https://api.github.com/repos/realbay/mavor-ext/contents/" + rel + "?ref=main", {
+        headers: {
+            Authorization: headers.Authorization,
+            Accept: "application/vnd.github+json",
+            "User-Agent": headers["User-Agent"],
+            "X-GitHub-Api-Version": headers["X-GitHub-Api-Version"]
+        }
+    });
+    if (!meta.ok)
+        return file;
+    const data = await meta.json();
+    if (!data || !data.sha)
+        return file;
+    return fetch("https://api.github.com/repos/realbay/mavor-ext/git/blobs/" + data.sha, { headers: headers });
+}
+
+async function handleClient(request, env) {
+    const url = new URL(request.url);
+    const rel = decodeURIComponent(url.pathname.replace(/^\/client\//, ""));
+    const contentType = CLIENT_FILES[rel];
+    if (!contentType)
+        return json(404, { ok: false, error: "Unknown file" });
+    if (request.method !== "GET" && request.method !== "HEAD")
+        return json(405, { ok: false, error: "GET only" });
+    if (!env.GITHUB_TOKEN)
+        return json(503, { ok: false, error: "GitHub token is not configured" });
+    const cacheKey = new Request(url.origin + "/client/" + rel, { method: "GET" });
+    const hit = await caches.default.match(cacheKey);
+    if (hit)
+        return hit;
+    const upstream = await githubRaw(env, rel);
+    const upstreamType = upstream.headers.get("content-type") || "";
+    if (!upstream.ok || upstreamType.indexOf("text/html") !== -1)
+        return json(502, { ok: false, error: "GitHub read failed", status: upstream.status });
+    const response = new Response(request.method === "HEAD" ? null : upstream.body, {
+        status: 200,
+        headers: {
+            "Content-Type": contentType,
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "public, max-age=60",
+            "X-Content-Type-Options": "nosniff"
+        }
+    });
+    if (request.method === "GET")
+        await caches.default.put(cacheKey, response.clone());
+    return response;
+}
+
 export default {
     async fetch(request, env) {
+        const url = new URL(request.url);
+        if (url.pathname.indexOf("/client/") === 0)
+            return handleClient(request, env);
         if (request.method === "OPTIONS")
             return new Response(null, {
                 status: 204,

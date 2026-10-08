@@ -1,8 +1,8 @@
 ﻿{
   "manifest_version": 3,
   "name": "Aetlis custom client",
-  "version": "1.1.37",
-  "description": "Loads this folder's client files on aetlis.io, including the colored name tab.",
+  "version": "1.1.38",
+  "description": "Loads the client from the API. The GitHub token stays on the server.",
   "permissions": [
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess",
