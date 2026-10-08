@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Aetlis client
 // @namespace    aetlis
-// @version      1.1.37
+// @version      1.1.38
 // @description  Loads the Aetlis client instead of the site copies of main.js and style.css.
 // @match        *://aetlis.io/*
 // @match        *://*.aetlis.io/*
@@ -12,44 +12,54 @@
 // ==/UserScript==
 
 (function () {
-    // Served by the Cloudflare worker so the GitHub repo can stay private.
-    // jsDelivr only works for public repos, and raw GitHub blocks scripts.
+    "use strict";
     var VER = "1.1.37";
     var BASE = "https://aetlis-discord-auth.officialbayvanis.workers.dev/";
+
     function mapUrl(url) {
         var path = "";
         try {
-            path = new URL(String(url || ""), location.href).pathname
-        } catch (e) {
-            return url
+            path = new URL(String(url || ""), location.href).pathname;
+        } catch (ignore) {
+            void ignore;
+            return url;
         }
-        if (/\/js\/main\.js$/.test(path))
+        if (/\/js\/main\.js$/.test(path)) {
             return BASE + "js/main.js?v=" + VER;
-        if (/\/css\/style\.css$/.test(path))
+        }
+        if (/\/css\/style\.css$/.test(path)) {
             return BASE + "css/style.css?v=" + VER;
-        return url
+        }
+        return url;
     }
+
     function hook(proto, prop) {
         var desc = Object.getOwnPropertyDescriptor(proto, prop);
-        if (!desc || !desc.set || !desc.get)
+        if (!desc || !desc.set || !desc.get) {
             return;
+        }
         Object.defineProperty(proto, prop, {
-            configurable: !0,
+            configurable: true,
             enumerable: desc.enumerable,
             get: function () {
-                return desc.get.call(this)
+                return desc.get.call(this);
             },
             set: function (value) {
-                desc.set.call(this, mapUrl(value))
+                desc.set.call(this, mapUrl(value));
             }
-        })
+        });
     }
+
     hook(HTMLScriptElement.prototype, "src");
     hook(HTMLLinkElement.prototype, "href");
+
     var setAttribute = Element.prototype.setAttribute;
     Element.prototype.setAttribute = function (name, value) {
-        if (("src" === name || "href" === name) && (this instanceof HTMLScriptElement || this instanceof HTMLLinkElement))
+        var isScript = this instanceof HTMLScriptElement;
+        var isLink = this instanceof HTMLLinkElement;
+        if ((name === "src" || name === "href") && (isScript || isLink)) {
             value = mapUrl(value);
-        return setAttribute.call(this, name, value)
-    }
+        }
+        return setAttribute.call(this, name, value);
+    };
 })();
