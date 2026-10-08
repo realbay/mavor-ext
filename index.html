@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <meta name="description" content="balls and balls yea thats pretty much it">
+        <title>Aetlis.io</title>
+        <link rel="shortcut icon" type="image/png" href="img/favicon.png">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer">
+        <script defer="defer" src="js/vendor.js"></script>
+        <script defer="defer" src="js/main.js"></script>
+        <link href="css/style.css" rel="stylesheet">
+    </head>
+    <body>
+        <div id="app">
+            <shutdown-overlay></shutdown-overlay>
+            <context-menu></context-menu>
+            <hud v-show="showHud"></hud>
+            <replay-controls></replay-controls>
+            <div id="overlay" v-show="showMenu || showDeathScreen">
+                <privacy-tos></privacy-tos>
+                <death-stats v-show="showDeathScreen" :stats="deathStats"></death-stats>
+                <main-container v-show="showMenu"></main-container>
+                <social-links></social-links>
+                <p class="preload font1">text</p>
+                <p class="preload font2">text</p>
+                <image-captcha></image-captcha>
+            </div>
+            <color-picker></color-picker>
+            <image-picker></image-picker>
+            <tooltip></tooltip>
+        </div>
+        <canvas id="canvas" tabindex="0"></canvas>
+    
+
+</body></html>

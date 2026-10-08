@@ -1,0 +1,8 @@
+functions/node_modules/
+functions/.env
+functions/.env.*
+!functions/.env.example
+worker/config.json
+worker/service-account.json
+worker/.secrets-upload.json
+worker/.wrangler/

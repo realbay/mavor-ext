@@ -1,0 +1,26 @@
+{
+  "rules": {
+    "approved": {
+      "$id": {
+        ".read": "auth != null && auth.uid == $id",
+        ".write": false
+      }
+    },
+    "requests": {
+      ".read": false,
+      ".write": false
+    },
+    "perks": {
+      ".read": "auth != null && root.child('approved').child(auth.uid).exists()",
+      "$id": {
+        ".write": "auth != null && auth.uid == $id && root.child('approved').child(auth.uid).exists()"
+      }
+    },
+    "presence": {
+      ".read": "auth != null && root.child('approved').child(auth.uid).exists()",
+      "$id": {
+        ".write": "auth != null && auth.uid == $id && root.child('approved').child(auth.uid).exists()"
+      }
+    }
+  }
+}

@@ -1,0 +1,60 @@
+﻿{
+  "manifest_version": 3,
+  "name": "Aetlis custom client",
+  "version": "1.1.37",
+  "description": "Loads this folder's client files on aetlis.io, including the colored name tab.",
+  "permissions": [
+    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess",
+    "identity",
+    "storage"
+  ],
+  "host_permissions": [
+    "*://aetlis.io/*",
+    "*://*.aetlis.io/*",
+    "*://imgur.com/*",
+    "*://*.imgur.com/*",
+    "*://i.imgur.com/*",
+    "*://external-content.duckduckgo.com/*",
+    "*://*.firebasedatabase.app/*",
+    "*://discord.com/*",
+    "*://*.discord.com/*",
+    "*://*.discordapp.com/*",
+    "*://*.discordapp.net/*",
+    "*://i.postimg.cc/*",
+    "*://*.postimg.cc/*",
+    "*://postimg.cc/*",
+    "*://*.postimages.org/*",
+    "https://securetoken.googleapis.com/*",
+    "https://identitytoolkit.googleapis.com/*",
+    "https://*.cloudfunctions.net/*",
+    "https://*.run.app/*",
+    "https://*.workers.dev/*"
+  ],
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://aetlis.io/*", "*://*.aetlis.io/*"],
+      "js": ["js/auth-config.js", "js/bridge.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "client_override",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["js/main.js", "css/style.css", "img/hats/*", "img/crown.png"],
+      "matches": ["*://aetlis.io/*", "*://*.aetlis.io/*"]
+    }
+  ]
+}
