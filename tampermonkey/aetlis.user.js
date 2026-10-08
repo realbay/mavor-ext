@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Aetlis client
 // @namespace    aetlis
-// @version      1.1.43
-// @description  Opens the Aetlis client the same way the Vanis loader does.
+// @version      1.1.44
+// @description  Replaces the Aetlis page with the client after it loads.
 // @include      *://aetlis.io/*
 // @include      *://*.aetlis.io/*
 // @match        *://aetlis.io/*
 // @match        *://*.aetlis.io/*
-// @run-at       document-start
+// @run-at       document-idle
 // @grant        none
 // @updateURL    https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/aetlis.user.js
 // @downloadURL  https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/aetlis.user.js
@@ -16,39 +16,16 @@
 (function () {
     "use strict";
     var host = location.hostname;
-    if (host !== "aetlis.io" && host !== "www.aetlis.io")
-        return;
-
-    // vanis.io/ea is a real page. /mavor is only a 404, so the script never starts there.
-    var target = "https://aetlis.io/?mavor";
-    var path = location.pathname.replace(/\/+$/, "") || "/";
-    var onClient = host === "aetlis.io" && path === "/" && /(?:^|[?&])mavor(?:&|$)/.test(location.search);
-    if (!onClient) {
-        window.stop();
-        location.href = target;
+    if (host !== "aetlis.io" && host !== "www.aetlis.io") {
+        location.href = "https://aetlis.io/";
         return;
     }
     if (window.__aetlisMavor)
         return;
     window.__aetlisMavor = 1;
 
-    var VER = "1.1.43";
+    var VER = "1.1.44";
     var BASE = "https://aetlis-discord-auth.officialbayvanis.workers.dev/";
-
-    function dropOriginal(node) {
-        if (!node || node.nodeType !== 1 || !node.getAttribute)
-            return;
-        var src = node.getAttribute("src") || node.getAttribute("href") || "";
-        if ((node.tagName === "SCRIPT" && /js\/(?:main|vendor)\.js/i.test(src)) || (node.tagName === "LINK" && /css\/style\.css/i.test(src)))
-            node.remove();
-    }
-
-    var blocker = new MutationObserver(function (list) {
-        list.forEach(function (rec) {
-            rec.addedNodes.forEach(dropOriginal);
-        });
-    });
-    blocker.observe(document, { childList: true, subtree: true });
 
     function installSpoof() {
         var desc = Object.getOwnPropertyDescriptor(Document.prototype, "currentScript");
@@ -80,7 +57,6 @@
         (document.head || document.documentElement).appendChild(script);
     }
 
-    // custom-loader.user.js fetches the page first, then opens and writes it. Stopping first leaves a blank page.
     fetch(location.origin + "/").then(function (res) {
         return res.text();
     }).then(function (html) {
@@ -94,9 +70,10 @@
         document.open();
         document.write(next);
         document.close();
-        blocker.disconnect();
         installSpoof();
         return fetch(BASE + "css/style.css?v=" + VER).then(function (res) {
+            if (!res.ok)
+                throw new Error("style " + res.status);
             return res.text();
         }).then(function (css) {
             var style = document.createElement("style");
@@ -108,14 +85,17 @@
         }).then(function (vendor) {
             addCode(vendor, false);
             return fetch(BASE + "js/main.js?v=" + VER).then(function (res) {
+                if (!res.ok)
+                    throw new Error("main " + res.status);
                 return res.text();
             });
         }).then(function (main) {
             addCode(main, true);
         });
     }).catch(function (err) {
+        window.__aetlisMavor = 0;
         document.open();
-        document.write("<p>Aetlis client failed to load.</p>");
+        document.write("<p>Aetlis client failed to load. Allow aetlis-discord-auth.officialbayvanis.workers.dev in your ad blocker, then try again.</p>");
         document.close();
         console.error(err);
     });
