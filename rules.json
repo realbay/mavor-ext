@@ -4,7 +4,7 @@
     "priority": 1,
     "action": {
       "type": "redirect",
-      "redirect": { "url": "https://aetlis-discord-auth.officialbayvanis.workers.dev/client/js/main.js" }
+      "redirect": { "extensionPath": "/js/main.js" }
     },
     "condition": {
       "regexFilter": "^https?://([a-z0-9-]+\\.)*aetlis\\.io/js/main\\.js",
@@ -16,7 +16,7 @@
     "priority": 1,
     "action": {
       "type": "redirect",
-      "redirect": { "url": "https://aetlis-discord-auth.officialbayvanis.workers.dev/client/css/style.css" }
+      "redirect": { "extensionPath": "/css/style.css" }
     },
     "condition": {
       "regexFilter": "^https?://([a-z0-9-]+\\.)*aetlis\\.io/css/style\\.css",
