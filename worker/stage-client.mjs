@@ -1,4 +1,4 @@
-import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "fs";
+import { cpSync, mkdirSync, rmSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -10,9 +10,7 @@ for (const rel of ["js/main.js", "css/style.css", "tampermonkey/aetlis.user.js"]
     mkdirSync(dirname(dest), { recursive: true });
     cpSync(join(root, rel), dest);
 }
-const script = readFileSync(join(root, "tampermonkey", "aetlis.user.js"), "utf8");
-const loader = script.replace(/^[\s\S]*?==\/UserScript==\s*/, "");
-const bookmark = "javascript:" + encodeURIComponent(loader);
+const bookmark = 'javascript:void(fetch("https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/aetlis.user.js").then(function(r){return r.text()}).then(function(t){var i=t.indexOf("==/UserScript==");if(i<0)throw new Error("bad");eval(t.slice(i+16))}).catch(function(){alert("Allow aetlis-discord-auth.officialbayvanis.workers.dev in uBlock or Adblock, then click the bookmark again")}))';
 writeFileSync(join(pub, "_headers"), `/*
   Access-Control-Allow-Origin: *
   Cache-Control: public, max-age=60
@@ -33,7 +31,7 @@ writeFileSync(join(pub, "index.html"), `<!DOCTYPE html>
 </head>
 <body>
   <h1>Aetlis bookmark</h1>
-  <p>No Tampermonkey. The normal aetlis.io menu stays on screen until you click the bookmark.</p>
+  <p>No Tampermonkey and no GitHub. Delete any older Aetlis bookmark first. This URL is one short line.</p>
   <ol>
     <li>Press <b>Ctrl+Shift+B</b> so the bookmarks bar is visible.</li>
     <li>Right-click the bar and choose <b>Add page</b>.</li>
