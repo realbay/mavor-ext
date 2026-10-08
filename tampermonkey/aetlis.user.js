@@ -2,26 +2,20 @@
 // @name         Aetlis client
 // @namespace    aetlis
 // @version      1.1.37
-// @description  Loads the Aetlis client from GitHub (jsDelivr) instead of the site copies of main.js and style.css.
+// @description  Loads the Aetlis client instead of the site copies of main.js and style.css.
 // @match        *://aetlis.io/*
 // @match        *://*.aetlis.io/*
 // @run-at       document-start
 // @grant        none
-// @updateURL    https://cdn.jsdelivr.net/gh/realbay/mavor-ext@main/tampermonkey/aetlis.user.js
-// @downloadURL  https://cdn.jsdelivr.net/gh/realbay/mavor-ext@main/tampermonkey/aetlis.user.js
+// @updateURL    https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/aetlis.user.js
+// @downloadURL  https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/aetlis.user.js
 // ==/UserScript==
 
 (function () {
-    // jsDelivr serves GitHub files as real scripts. Raw GitHub does not.
-    // Repo layout this expects:
-    //   js/main.js
-    //   css/style.css
-    //   tampermonkey/aetlis.user.js
-    var GH = "realbay/mavor-ext";
+    // Served by the Cloudflare worker so the GitHub repo can stay private.
+    // jsDelivr only works for public repos, and raw GitHub blocks scripts.
     var VER = "1.1.37";
-    if (!GH || GH.indexOf("YOUR_GITHUB") === 0)
-        return;
-    var BASE = "https://cdn.jsdelivr.net/gh/" + GH + "@main/";
+    var BASE = "https://aetlis-discord-auth.officialbayvanis.workers.dev/";
     function mapUrl(url) {
         var path = "";
         try {

@@ -2,3 +2,8 @@ name = "aetlis-discord-auth"
 main = "src/index.js"
 compatibility_date = "2026-01-01"
 workers_dev = true
+
+# Only the staged client files in worker/public. Do not point this at the repo root.
+[assets]
+directory = "./public"
+binding = "ASSETS"

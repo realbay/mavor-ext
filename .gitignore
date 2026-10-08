@@ -6,3 +6,4 @@ worker/config.json
 worker/service-account.json
 worker/.secrets-upload.json
 worker/.wrangler/
+worker/public/
