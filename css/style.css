@@ -15147,13 +15147,21 @@ input[type=range].slider::-webkit-slider-thumb {
 }
 
 .mavor-content .ext-perks .perk-color-wrapper {
+    align-content: start;
+    grid-template-rows: max-content 32px !important;
+    height: auto !important;
     max-width: 100%;
+}
+
+.mavor-content .ext-perks .perk-name {
+    height: 32px;
+    max-height: 32px;
 }
 
 /* Name color and cell color share the top row. Badges and hats span the full width under them. */
 .mavor-content .ext-perks.perk-split {
     align-content: start;
-    align-items: stretch;
+    align-items: start;
     display: grid !important;
     flex: 1 1 auto !important;
     flex-direction: unset !important;
@@ -15196,32 +15204,43 @@ input[type=range].slider::-webkit-slider-thumb {
     margin-bottom: 0 !important;
 }
 
-.ext-perks .border-color-row {
-    grid-template-columns: minmax(0, 1fr) 32px 44px 58px;
-}
-
-.ext-perks .border-color-row .perk-color-update {
-    width: 44px;
-}
-
-.ext-perks .border-color-row .aetlis-thick-inline {
-    align-items: center;
+.mavor-content .ext-perks .border-line {
+    align-items: end;
     display: flex;
-    gap: 3px;
-    grid-column: 4;
-    grid-row: 2;
+    gap: 6px;
+}
+
+.mavor-content .ext-perks .border-hex {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 4px;
     min-width: 0;
 }
 
-.ext-perks .border-color-row .aetlis-thick-input,
-.mavor-content .ext-perks .border-color-row .aetlis-thick-input {
-    flex: 1 1 auto;
+.mavor-content .ext-perks .border-hex .perk-name {
     grid-column: auto;
     grid-row: auto;
     min-width: 0;
+    width: 100%;
+}
+
+.mavor-content .ext-perks .border-line .aetlis-thick-inline {
+    align-items: center;
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 4px;
+    margin: 0;
+}
+
+.mavor-content .ext-perks .border-line .aetlis-thick-input {
+    flex: 0 0 auto;
+    grid-column: auto;
+    grid-row: auto;
     padding: 4px 2px;
     text-align: center;
-    width: 34px;
+    width: 44px;
 }
 
 .mavor-content .ext-perks .hats-section,
@@ -15253,14 +15272,14 @@ input[type=range].slider::-webkit-slider-thumb {
 }
 
 .mavor-content .ext-perks .hats-section .hats-grid {
-    align-items: flex-end;
+    align-items: flex-start;
     align-self: stretch;
     box-sizing: border-box;
     flex: 0 0 auto;
-    height: auto;
+    height: 154px;
     max-height: none;
     max-width: 100%;
-    min-height: 0;
+    min-height: 154px;
     min-width: 0;
     overflow-x: auto;
     overflow-y: hidden;

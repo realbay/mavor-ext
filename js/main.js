@@ -14736,10 +14736,10 @@
                     }, [x._v(" ")])], 1), x._v(" "), P("div", {
                         staticClass: "options"
                     }, [P("div", {
-                        staticClass: "perk-color-wrapper cell-color-row border-color-row"
-                    }, [P("span", [x._v("Hex")]), x._v(" "), P("span", {
-                        staticClass: "perk-color-label"
-                    }, [x._v("Border")]), x._v(" "), P("input", {
+                        staticClass: "border-line"
+                    }, [P("label", {
+                        staticClass: "border-hex"
+                    }, [P("span", [x._v("Hex")]), P("input", {
                         staticClass: "perk-name cell-hex",
                         attrs: {
                             type: "text",
@@ -14755,7 +14755,7 @@
                                 x.setBorderHex(P.target.value)
                             }
                         }
-                    }), x._v(" "), P("span", {
+                    })]), x._v(" "), P("span", {
                         staticClass: "perk-color-option"
                     }, [P("color-option", {
                         attrs: {
@@ -14772,7 +14772,7 @@
                         on: {
                             click: x.commitBorder
                         }
-                    }, [x._v("Set")]), x._v(" "), P("span", {
+                    }, [x._v("Set")]), x._v(" "), P("label", {
                         staticClass: "aetlis-thick-inline"
                     }, [P("input", {
                         staticClass: "perk-name aetlis-thick-input",
