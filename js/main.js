@@ -14133,7 +14133,8 @@
                         hatUrl: selectedHat,
                         hatDraft: "",
                         hatModalId: null,
-                        hatAddOpen: !1
+                        hatAddOpen: !1,
+                        colorModal: ""
                     }
                 },
                 computed: {
@@ -14618,7 +14619,10 @@
                     }, [P("div", {
                         staticClass: "perk-split-left"
                     }, [P("div", {
-                        staticClass: "section row name-color-section"
+                        staticClass: "section row name-color-section",
+                        class: {
+                            "rv-open": "name" === x.colorModal
+                        }
                     }, [P("div", {
                         staticClass: "header"
                     }, [P("span", {
@@ -14630,9 +14634,46 @@
                         }
                     }, [x._v("Not showing")]) : x._e()]), x._v(" "), P("div", {
                         staticClass: "options"
-                    }, [x.enabled ? [P("div", {
+                    }, [x.enabled ? [P("button", {
+                        staticClass: "rv-tile",
+                        attrs: {
+                            type: "button"
+                        },
+                        on: {
+                            click: function () {
+                                x.colorModal = "name"
+                            }
+                        }
+                    }, [P("span", {
+                        staticClass: "rv-tile-label",
+                        class: {
+                            "aetlis-grad": x.gradOn && x.grads.length > 1
+                        },
+                        style: x.gradOn && x.grads.length > 1 ? x.gradPreview : {
+                            color: "#" + x.hex
+                        }
+                    }, [x._v(x._s(x.name || "Name"))])]), "name" === x.colorModal ? P("div", {
+                        staticClass: "rv-backdrop",
+                        on: {
+                            click: function () {
+                                x.colorModal = ""
+                            }
+                        }
+                    }) : x._e(), P("div", {
                         staticClass: "dns-pick"
                     }, [P("div", {
+                        staticClass: "rv-modal-head"
+                    }, [P("span", [x._v("Name color")]), P("button", {
+                        staticClass: "rv-modal-x",
+                        attrs: {
+                            type: "button"
+                        },
+                        on: {
+                            click: function () {
+                                x.colorModal = ""
+                            }
+                        }
+                    }, [x._v("×")])]), P("div", {
                         staticClass: "dns-name-line"
                     }, [P("input", {
                         staticClass: "dns-name",
@@ -14816,7 +14857,10 @@
                     })], 1)])])]), x._v(" "), P("div", {
                         staticClass: "perk-split-right"
                     }, [P("div", {
-                        staticClass: "section row cell-color-section"
+                        staticClass: "section row cell-color-section",
+                        class: {
+                            "rv-open": "cell" === x.colorModal
+                        }
                     }, [P("div", {
                         staticClass: "header"
                     }, [P("span", {
@@ -14833,7 +14877,41 @@
                         }
                     }, [x._v(" ")])], 1), x._v(" "), P("div", {
                         staticClass: "options"
+                    }, [P("button", {
+                        staticClass: "rv-tile rv-tile-color",
+                        style: {
+                            background: "#" + x.cellHex
+                        },
+                        attrs: {
+                            type: "button"
+                        },
+                        on: {
+                            click: function () {
+                                x.colorModal = "cell"
+                            }
+                        }
+                    }), "cell" === x.colorModal ? P("div", {
+                        staticClass: "rv-backdrop",
+                        on: {
+                            click: function () {
+                                x.colorModal = ""
+                            }
+                        }
+                    }) : x._e(), P("div", {
+                        staticClass: "dns-sheet"
                     }, [P("div", {
+                        staticClass: "rv-modal-head"
+                    }, [P("span", [x._v("Cell color")]), P("button", {
+                        staticClass: "rv-modal-x",
+                        attrs: {
+                            type: "button"
+                        },
+                        on: {
+                            click: function () {
+                                x.colorModal = ""
+                            }
+                        }
+                    }, [x._v("×")])]), P("div", {
                         staticClass: "dns-heading"
                     }, [x._v("Choose Colour")]), x._v(" "), P("div", {
                         staticClass: "dns-colors"
@@ -14869,8 +14947,11 @@
                         })
                     })), 2)]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
-                    }, [x._v("Saved for your account. Other extension users see this color on your cells.")])])]), x._v(" "), P("div", {
-                        staticClass: "section row border-section"
+                    }, [x._v("Saved for your account. Other extension users see this color on your cells.")])])])]), x._v(" "), P("div", {
+                        staticClass: "section row border-section",
+                        class: {
+                            "rv-open": "border" === x.colorModal
+                        }
                     }, [P("div", {
                         staticClass: "header"
                     }, [P("span", {
@@ -14887,7 +14968,42 @@
                         }
                     }, [x._v(" ")])], 1), x._v(" "), P("div", {
                         staticClass: "options"
+                    }, [P("button", {
+                        staticClass: "rv-tile rv-tile-color",
+                        style: {
+                            background: "#" + x.borderHex,
+                            boxShadow: "inset 0 0 0 3px #" + x.borderHex + ", inset 0 0 0 6px #1e1f22"
+                        },
+                        attrs: {
+                            type: "button"
+                        },
+                        on: {
+                            click: function () {
+                                x.colorModal = "border"
+                            }
+                        }
+                    }), "border" === x.colorModal ? P("div", {
+                        staticClass: "rv-backdrop",
+                        on: {
+                            click: function () {
+                                x.colorModal = ""
+                            }
+                        }
+                    }) : x._e(), P("div", {
+                        staticClass: "dns-sheet"
                     }, [P("div", {
+                        staticClass: "rv-modal-head"
+                    }, [P("span", [x._v("Border")]), P("button", {
+                        staticClass: "rv-modal-x",
+                        attrs: {
+                            type: "button"
+                        },
+                        on: {
+                            click: function () {
+                                x.colorModal = ""
+                            }
+                        }
+                    }, [x._v("×")])]), P("div", {
                         staticClass: "dns-heading"
                     }, [x._v("Choose Colour")]), x._v(" "), P("div", {
                         staticClass: "dns-colors"
@@ -14944,7 +15060,7 @@
                         }
                     }), P("span", [x._v("px")])]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
-                    }, [x._v("Shows around your cell only when skins are hidden, or when you have no skin.")])])]), x._v(" "), P("div", {
+                    }, [x._v("Shows around your cell only when skins are hidden, or when you have no skin.")])])])]), x._v(" "), P("div", {
                         staticClass: "section row hats-section"
                     }, [P("div", {
                         staticClass: "header"
