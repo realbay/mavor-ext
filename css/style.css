@@ -15152,10 +15152,12 @@ input[type=range].slider::-webkit-slider-thumb {
     gap: 10px;
     grid-template-areas:
         "name cell"
+        "gradient gradient"
+        "border border"
         "badges badges"
         "hats hats";
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto auto;
+    grid-template-rows: auto auto auto auto auto;
     max-height: 100%;
     min-height: 0 !important;
     overflow: auto !important;
@@ -15173,6 +15175,16 @@ input[type=range].slider::-webkit-slider-thumb {
 
 .mavor-content .ext-perks .cell-color-section {
     grid-area: cell;
+    margin-bottom: 0 !important;
+}
+
+.mavor-content .ext-perks .gradient-section {
+    grid-area: gradient;
+    margin-bottom: 0 !important;
+}
+
+.mavor-content .ext-perks .border-section {
+    grid-area: border;
     margin-bottom: 0 !important;
 }
 
@@ -15235,12 +15247,14 @@ input[type=range].slider::-webkit-slider-thumb {
     width: 72px;
 }
 
-.mavor-content .ext-perks .hats-section .hats-grid .hat-slot .hat-cell {
+.mavor-content .ext-perks .hats-section .hats-grid .hat-slot .hat-cell,
+.mavor-content .ext-perks .hats-section .hats-grid .hat-preview-canvas {
     flex: none;
-    height: 72px;
-    max-height: none;
+    height: 72px !important;
+    max-height: 72px !important;
+    max-width: 72px !important;
     overflow: hidden;
-    width: 72px;
+    width: 72px !important;
 }
 
 /* Badges as horizontal rail under name color */
@@ -15419,64 +15433,64 @@ input[type=range].slider::-webkit-slider-thumb {
     width: auto;
 }
 
-.mavor-content .ext-perks .header,
-.mavor-content .ext-perks .aetlis-subhead,
-.mavor-content .ext-perks .aetlis-grad-head {
+.mavor-content .ext-perks .slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: #121212;
+    border: 1px solid #e64a30;
+    border-radius: 60px;
+    box-sizing: border-box;
+    display: block;
+    height: 17px;
+    margin-right: 7px;
+    outline: none;
+    padding: 1px;
+    width: 100%;
+}
+
+.mavor-content .ext-perks .inline-range {
     align-items: center;
     display: flex;
-    gap: 8px;
+    margin-top: 8px;
 }
 
-.aetlis-switch {
-    background: #3a3a3a;
-    border: 0;
-    border-radius: 99px;
-    cursor: pointer;
-    flex: 0 0 auto;
-    height: 20px;
-    margin-left: auto;
-    padding: 0;
-    position: relative;
-    width: 36px;
+.mavor-content .ext-perks .inline-range > .slider {
+    flex: 1 1 auto;
+    width: auto;
 }
 
-.aetlis-switch:after {
-    background: #ddd;
-    border-radius: 50%;
-    content: "";
-    height: 16px;
-    left: 2px;
-    position: absolute;
-    top: 2px;
-    transition: transform .15s ease;
-    width: 16px;
-}
-
-.aetlis-switch.on {
+.mavor-content .ext-perks .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
     background: #e64a30;
+    border-radius: 60px;
+    cursor: pointer;
+    height: 15px;
+    width: 15px;
 }
 
-.aetlis-switch.on:after {
-    transform: translateX(16px);
+.mavor-content .ext-perks .slider::-moz-range-thumb {
+    background: #e64a30;
+    border: 0;
+    border-radius: 60px;
+    cursor: pointer;
+    height: 15px;
+    width: 15px;
 }
 
-.aetlis-subhead {
-    color: #eee;
-    font-size: 14px;
-    font-weight: 600;
-    margin: 12px 0 8px;
+.mavor-content .ext-perks .inline-range.off > .slider {
+    border-color: #bdc3c7;
 }
 
-.aetlis-grad-box {
-    border-top: 1px solid rgba(255, 255, 255, .08);
-    margin-top: 10px;
-    padding-top: 8px;
+.mavor-content .ext-perks .inline-range.off > .slider::-webkit-slider-thumb,
+.mavor-content .ext-perks .inline-range.off > .slider::-moz-range-thumb {
+    background: #bdc3c7;
 }
 
-.aetlis-grad-head {
-    color: #eee;
-    font-size: 14px;
-    font-weight: 600;
+.mavor-content .ext-perks .inline-range > .right {
+    float: none;
+    margin-left: 8px;
+    min-width: 1.5em;
 }
 
 .aetlis-grad-preview {
@@ -15484,14 +15498,15 @@ input[type=range].slider::-webkit-slider-thumb {
     font-size: 22px;
     font-weight: 700;
     line-height: 1.2;
-    margin: 8px 0 10px;
+    margin: 2px 0 10px;
 }
 
-.aetlis-grad-track {
-    border-radius: 99px;
-    height: 10px;
-    margin: 16px 28px 8px 8px;
-    position: relative;
+.aetlis-stops {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 10px;
 }
 
 .aetlis-stop,
@@ -15500,45 +15515,31 @@ input[type=range].slider::-webkit-slider-thumb {
     border-radius: 50%;
     box-shadow: 0 0 0 1px rgba(255, 255, 255, .35);
     cursor: pointer;
-    height: 18px;
+    flex: 0 0 auto;
+    height: 28px;
     padding: 0;
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 18px;
+    position: static;
+    transform: none;
+    width: 28px;
 }
 
 .aetlis-stop.on {
     box-shadow: 0 0 0 2px #fff;
-    height: 22px;
-    width: 22px;
 }
 
 .aetlis-stop-add {
-    background: #1a1a1a;
-    color: #fff;
-    font-size: 14px;
+    background: #121212;
+    border: 1px solid #bdc3c7;
+    box-shadow: none;
+    color: #dadada;
+    font-size: 16px;
     font-weight: 700;
-    left: calc(100% + 16px);
-    line-height: 14px;
+    line-height: 24px;
 }
 
 .aetlis-stop-add:disabled {
     cursor: default;
     opacity: .35;
-}
-
-.aetlis-grad-edit {
-    align-items: center;
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-}
-
-.aetlis-grad-edit .cell-hex {
-    flex: 1 1 auto;
-    min-width: 0;
-    width: auto;
 }
 
 .aetlis-thickness {

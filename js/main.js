@@ -14219,8 +14219,8 @@
                         x = String(x || "").replace(/^#/, ""),
                             /^[0-9a-fA-F]{6}$/.test(x) && (this.hex = x.toLowerCase())
                     },
-                    toggleGrad() {
-                        this.gradOn = !this.gradOn
+                    toggleGrad(v) {
+                        this.gradOn = "boolean" == typeof v ? v : !this.gradOn
                     },
                     pickGrad(i) {
                         this.gradPick = i
@@ -14245,8 +14245,11 @@
                         if (this.gradPick >= this.grads.length)
                             this.gradPick = this.grads.length - 1
                     },
-                    toggleCell() {
-                        this.cellOn = !this.cellOn;
+                    toggleCell(v) {
+                        v = "boolean" == typeof v ? v : !this.cellOn;
+                        if (v === this.cellOn)
+                            return;
+                        this.cellOn = v;
                         localStorage.aetlisCellColorOn = this.cellOn ? "true" : "false";
                         if (this.cellOn)
                             localStorage.aetlisCellColor = this.cellHex,
@@ -14254,8 +14257,11 @@
                         window.__aetlisApplyCellColors && window.__aetlisApplyCellColors();
                         window.__aetlisPublishPerks && window.__aetlisPublishPerks()
                     },
-                    toggleBorder() {
-                        this.borderOn = !this.borderOn;
+                    toggleBorder(v) {
+                        v = "boolean" == typeof v ? v : !this.borderOn;
+                        if (v === this.borderOn)
+                            return;
+                        this.borderOn = v;
                         localStorage.aetlisCellBorderOn = this.borderOn ? "true" : "false";
                         if (this.borderOn)
                             localStorage.aetlisCellBorder = this.borderHex,
@@ -14583,95 +14589,7 @@
                         }
                     }, [x._v("Set")])]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
-                    }, [x._v("Color only when Nickname matches. Name is reserved in the extension DB — others can't claim it.")]), x._v(" "), P("div", {
-                        staticClass: "aetlis-grad-box"
-                    }, [P("div", {
-                        staticClass: "aetlis-grad-head"
-                    }, [P("span", [x._v("Gradient")]), P("button", {
-                        staticClass: "aetlis-switch",
-                        class: {
-                            on: x.gradOn
-                        },
-                        attrs: {
-                            type: "button",
-                            tip: "Blend several colors across the name"
-                        },
-                        on: {
-                            click: x.toggleGrad
-                        }
-                    })]), x.gradOn ? [P("span", {
-                        staticClass: "aetlis-grad-preview aetlis-grad",
-                        style: x.gradPreview
-                    }, [x._v(x._s((x.name || x.reservedName || "Name").slice(0, 15)))]), P("div", {
-                        staticClass: "aetlis-grad-track",
-                        style: x.gradBar
-                    }, x._l(x.grads, (function (h, i) {
-                        return P("button", {
-                            key: i,
-                            staticClass: "aetlis-stop",
-                            class: {
-                                on: x.gradPick === i
-                            },
-                            style: {
-                                left: (x.grads.length < 2 ? 0 : 100 * i / (x.grads.length - 1)) + "%",
-                                backgroundColor: "#" + h
-                            },
-                            attrs: {
-                                type: "button"
-                            },
-                            on: {
-                                click: function () {
-                                    return x.pickGrad(i)
-                                }
-                            }
-                        })
-                    }
-                    )).concat([P("button", {
-                        staticClass: "aetlis-stop-add",
-                        attrs: {
-                            type: "button",
-                            tip: "Add a color",
-                            disabled: x.grads.length >= 5
-                        },
-                        on: {
-                            click: x.addGradStop
-                        }
-                    }, [x._v("+")])])), P("div", {
-                        staticClass: "aetlis-grad-edit"
-                    }, [P("span", {
-                        staticClass: "perk-color-option"
-                    }, [P("color-option", {
-                        attrs: {
-                            Nm: x.grads[x.gradPick] || x.hex
-                        },
-                        on: {
-                            input: x.setGradHex
-                        }
-                    })], 1), x._v(" "), P("input", {
-                        staticClass: "perk-name cell-hex",
-                        attrs: {
-                            type: "text",
-                            spellcheck: "false",
-                            maxlength: "7"
-                        },
-                        domProps: {
-                            value: "#" + (x.grads[x.gradPick] || x.hex)
-                        },
-                        on: {
-                            input: function (ev) {
-                                x.setGradHex(ev.target.value)
-                            }
-                        }
-                    }), x._v(" "), P("button", {
-                        staticClass: "perk-color-update",
-                        attrs: {
-                            type: "button",
-                            disabled: x.grads.length <= 2
-                        },
-                        on: {
-                            click: x.removeGradStop
-                        }
-                    }, [x._v("Remove")])])] : x._e()], 2)] : [P("div", {
+                    }, [x._v("Color only when Nickname matches. Name is reserved in the extension DB — others can't claim it.")])] : [P("div", {
                         staticClass: "confirm-row"
                     }, [P("span", [x.reservedName ? [x._v("Reserved name "), P("b", [x._v(x._s(x.reservedName))])] : [x._v("Shows in chat, minimap, name and leaderboard. Name is exclusive.")]], 2), x._v(" "), P("button", {
                         staticClass: "confirm-button",
@@ -14707,19 +14625,17 @@
                         staticClass: "section row cell-color-section"
                     }, [P("div", {
                         staticClass: "header"
-                    }, [x._v("Cell color"), P("button", {
-                        staticClass: "aetlis-switch",
-                        class: {
-                            on: x.cellOn
-                        },
+                    }, [P("p-check", {
+                        staticClass: "p-switch",
                         attrs: {
-                            type: "button",
-                            tip: x.cellOn ? "Turn cell color off" : "Turn cell color on"
+                            checked: x.cellOn
                         },
                         on: {
-                            click: x.toggleCell
+                            change: function (v) {
+                                x.toggleCell(v)
+                            }
                         }
-                    })]), x._v(" "), P("div", {
+                    }), x._v(" Cell color")], 1), x._v(" "), P("div", {
                         staticClass: "options"
                     }, [P("div", {
                         staticClass: "perk-color-wrapper cell-color-row"
@@ -14760,21 +14676,108 @@
                         }
                     }, [x._v("Set")])]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
-                    }, [x._v("Saved for your account. Other extension users see this color on your cells.")]), x._v(" "), P("div", {
-                        staticClass: "aetlis-subhead"
-                    }, [P("span", [x._v("Border")]), P("button", {
-                        staticClass: "aetlis-switch",
-                        class: {
-                            on: x.borderOn
-                        },
+                    }, [x._v("Saved for your account. Other extension users see this color on your cells.")]), ])]), x._v(" "), P("div", {
+                        staticClass: "section row gradient-section"
+                    }, [P("div", {
+                        staticClass: "header"
+                    }, [P("p-check", {
+                        staticClass: "p-switch",
                         attrs: {
-                            type: "button",
-                            tip: x.borderOn ? "Turn border off" : "Turn border on"
+                            checked: x.gradOn
                         },
                         on: {
-                            click: x.toggleBorder
+                            change: function (v) {
+                                x.toggleGrad(v)
+                            }
                         }
-                    })]), x._v(" "), P("div", {
+                    }), x._v(" Gradient")], 1), x._v(" "), x.gradOn ? P("div", {
+                        staticClass: "options"
+                    }, [P("div", {
+                        staticClass: "aetlis-grad-preview aetlis-grad",
+                        style: x.gradPreview
+                    }, [x._v(x._s((x.name || x.reservedName || "Name").slice(0, 15)))]), x._v(" "), P("div", {
+                        staticClass: "aetlis-stops"
+                    }, x._l(x.grads, (function (h, i) {
+                        return P("button", {
+                            key: i,
+                            staticClass: "aetlis-stop",
+                            class: {
+                                on: x.gradPick === i
+                            },
+                            style: {
+                                backgroundColor: "#" + h
+                            },
+                            attrs: {
+                                type: "button"
+                            },
+                            on: {
+                                click: function () {
+                                    return x.pickGrad(i)
+                                }
+                            }
+                        })
+                    }
+                    )).concat([P("button", {
+                        staticClass: "aetlis-stop-add",
+                        attrs: {
+                            type: "button",
+                            disabled: x.grads.length >= 5
+                        },
+                        on: {
+                            click: x.addGradStop
+                        }
+                    }, [x._v("+")])])), x._v(" "), P("div", {
+                        staticClass: "perk-color-wrapper cell-color-row"
+                    }, [P("span", [x._v("Hex")]), x._v(" "), P("input", {
+                        staticClass: "perk-name cell-hex",
+                        attrs: {
+                            type: "text",
+                            spellcheck: "false",
+                            maxlength: "7"
+                        },
+                        domProps: {
+                            value: "#" + (x.grads[x.gradPick] || x.hex)
+                        },
+                        on: {
+                            input: function (ev) {
+                                x.setGradHex(ev.target.value)
+                            }
+                        }
+                    }), x._v(" "), P("span", {
+                        staticClass: "perk-color-option"
+                    }, [P("color-option", {
+                        attrs: {
+                            Nm: x.grads[x.gradPick] || x.hex
+                        },
+                        on: {
+                            input: x.setGradHex
+                        }
+                    })], 1), x._v(" "), P("button", {
+                        staticClass: "perk-color-update",
+                        attrs: {
+                            type: "button",
+                            disabled: x.grads.length <= 2
+                        },
+                        on: {
+                            click: x.removeGradStop
+                        }
+                    }, [x._v("Remove")])])]) : x._e()]), x._v(" "), P("div", {
+                        staticClass: "section row border-section"
+                    }, [P("div", {
+                        staticClass: "header"
+                    }, [P("p-check", {
+                        staticClass: "p-switch",
+                        attrs: {
+                            checked: x.borderOn
+                        },
+                        on: {
+                            change: function (v) {
+                                x.toggleBorder(v)
+                            }
+                        }
+                    }), x._v(" Border")], 1), x._v(" "), P("div", {
+                        staticClass: "options"
+                    }, [P("div", {
                         staticClass: "perk-color-wrapper cell-color-row"
                     }, [P("span", [x._v("Hex")]), x._v(" "), P("span", {
                         staticClass: "perk-color-label"
@@ -14813,10 +14816,13 @@
                         }
                     }, [x._v("Set")])]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
-                    }, [x._v("Shows around your cell only when skins are hidden, or when you have no skin.")]), x._v(" "), P("label", {
-                        staticClass: "aetlis-thickness"
-                    }, [P("span", [x._v("Thickness")]), P("input", {
-                        staticClass: "aetlis-range",
+                    }, [x._v("Shows around your cell only when skins are hidden, or when you have no skin.")]), x._v(" "), P("div", {
+                        staticClass: "inline-range",
+                        class: {
+                            off: !x.borderOn
+                        }
+                    }, [P("input", {
+                        staticClass: "slider",
                         attrs: {
                             type: "range",
                             min: "2",
@@ -14835,7 +14841,7 @@
                             }
                         }
                     }), P("span", {
-                        staticClass: "aetlis-range-val"
+                        staticClass: "right"
                     }, [x._v(x._s(x.borderSize))])])])]), x._v(" "), P("div", {
                         staticClass: "section row hats-section"
                     }, [P("div", {

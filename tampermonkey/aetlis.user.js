@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Aetlis client
-// @version      1.1.50
+// @version      1.1.51
 // @description  Aetlis client. Normal build. The admin build is aetlis.admin.user.js.
 // @match        *://aetlis.io/*
 // @match        *://*.aetlis.io/*
 // @run-at       document-end
-// @updateURL    https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/aetlis.user.js
-// @downloadURL  https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/aetlis.user.js
+// @updateURL    https://raw.githubusercontent.com/realbay/mavor-ext/main/tampermonkey/aetlis.user.js
+// @downloadURL  https://raw.githubusercontent.com/realbay/mavor-ext/main/tampermonkey/aetlis.user.js
 // ==/UserScript==
 
 (async function (base, build) {
@@ -41,12 +41,12 @@
     }
 
     async function load() {
-        var css = await fetch(base + "css/style.css").then(function (res) { return res.text(); });
+        var css = await fetch(base + "/css/style.css").then(function (res) { return res.text(); });
         var style = document.createElement("style");
         style.textContent = css;
         document.head.appendChild(style);
         installSpoof();
-        var files = ["https://aetlis.io/js/vendor.js", base + "js/main.js"];
+        var files = ["https://aetlis.io/js/vendor.js", base + "/js/main.js"];
         for (var i = 0; i < files.length; i++) {
             var code = await fetch(files[i]).then(function (res) { return res.text(); });
             var script = document.createElement("script");
@@ -59,7 +59,7 @@
     }
 
     document.open();
-    await fetch("https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/menu.txt").then(function (res) { return res.text(); }).then(function (html) { document.write(html); });
+    await fetch(base + "/tampermonkey/shell.html").then(function (res) { return res.text(); }).then(function (html) { document.write(html); });
     document.close();
     await load();
-})("https://aetlis-discord-auth.officialbayvanis.workers.dev/client/", "user");
+})("https://raw.githubusercontent.com/realbay/mavor-ext/main", "user");

@@ -38,7 +38,7 @@ writeFileSync(join(pub, "index.html"), `<!DOCTYPE html>
   <p>Same order as the Rise script. Turn the unpacked extension off.</p>
   <ol>
     <li>On <code>chrome://extensions</code>, open Tampermonkey and turn on <b>Allow user scripts</b>.</li>
-    <li>Install one script, not both. Players use the normal script. Owners use the admin script. Paste it into Tampermonkey, then File → Save. The header must say <code>@run-at document-end</code> and <code>@version 1.1.50</code>.</li>
+    <li>Install one script, not both. Players use the normal script. Owners use the admin script. Paste it into Tampermonkey, then File → Save. The header must say <code>@run-at document-end</code> and <code>@version 1.1.51</code>.</li>
     <li>Open <a href="https://aetlis.io/">aetlis.io</a> and wait for the Mavor button.</li>
   </ol>
   <h2>Normal</h2>
