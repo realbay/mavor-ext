@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Aetlis client
-// @version      1.1.49
-// @description  Aetlis client
+// @version      1.1.50
+// @description  Aetlis client. Normal build. The admin build is aetlis.admin.user.js.
 // @match        *://aetlis.io/*
 // @match        *://*.aetlis.io/*
 // @run-at       document-end
@@ -9,13 +9,14 @@
 // @downloadURL  https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/aetlis.user.js
 // ==/UserScript==
 
-(async function (base) {
+(async function (base, build) {
     "use strict";
     if (location.hostname !== "aetlis.io" && location.hostname !== "www.aetlis.io")
         return;
     if (window.__aetlisMavor)
         return;
     window.__aetlisMavor = 1;
+    window.__aetlisBuild = build || "user";
 
     function installSpoof() {
         var desc = Object.getOwnPropertyDescriptor(Document.prototype, "currentScript");
@@ -61,4 +62,4 @@
     await fetch("https://aetlis-discord-auth.officialbayvanis.workers.dev/tampermonkey/menu.txt").then(function (res) { return res.text(); }).then(function (html) { document.write(html); });
     document.close();
     await load();
-})("https://aetlis-discord-auth.officialbayvanis.workers.dev/client/");
+})("https://aetlis-discord-auth.officialbayvanis.workers.dev/client/", "user");

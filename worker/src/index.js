@@ -288,6 +288,8 @@ export default {
         const url = new URL(request.url);
         if (url.pathname.indexOf("/client/") === 0)
             return handleClient(request, env);
+        if (request.method === "GET" || request.method === "HEAD")
+            return env.ASSETS.fetch(request);
         if (request.method === "OPTIONS")
             return new Response(null, {
                 status: 204,

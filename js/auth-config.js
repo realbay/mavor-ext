@@ -2,7 +2,7 @@
    discordClientId: Discord application OAuth2 client id.
    functionUrl: the free Cloudflare Worker URL (no trailing slash).
    The Discord client secret stays on Cloudflare, not in this file.
-   Discord redirect: https://pdalibpleemgoedibjlnhblfmpgkgbmb.chromiumapp.org/ */
+   Discord redirect: https://jhfcbafbjfdoaapelehdjogfjddnocbm.chromiumapp.org/ */
 self.AETLIS_AUTH = {
     enforce: true,
     discordClientId: "1557753255726153738",

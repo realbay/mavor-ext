@@ -7,14 +7,19 @@ const pub = join(root, "worker", "public");
 rmSync(pub, { recursive: true, force: true });
 mkdirSync(join(pub, "tampermonkey"), { recursive: true });
 cpSync(join(root, "tampermonkey", "aetlis.user.js"), join(pub, "tampermonkey", "aetlis.user.js"));
+cpSync(join(root, "tampermonkey", "aetlis.admin.user.js"), join(pub, "tampermonkey", "aetlis.admin.user.js"));
 cpSync(join(root, "tampermonkey", "shell.html"), join(pub, "tampermonkey", "menu.txt"));
 const scriptPath = join(root, "tampermonkey", "aetlis.user.js");
 const script = readFileSync(scriptPath, "utf8");
+const adminScript = readFileSync(join(root, "tampermonkey", "aetlis.admin.user.js"), "utf8");
 writeFileSync(join(pub, "_headers"), `/*
   Access-Control-Allow-Origin: *
   Cache-Control: public, max-age=60
 
 /tampermonkey/aetlis.user.js
+  Content-Type: text/javascript; charset=utf-8
+
+/tampermonkey/aetlis.admin.user.js
   Content-Type: text/javascript; charset=utf-8
 `);
 writeFileSync(join(pub, "index.html"), `<!DOCTYPE html>
@@ -33,16 +38,22 @@ writeFileSync(join(pub, "index.html"), `<!DOCTYPE html>
   <p>Same order as the Rise script. Turn the unpacked extension off.</p>
   <ol>
     <li>On <code>chrome://extensions</code>, open Tampermonkey and turn on <b>Allow user scripts</b>.</li>
-    <li>Create a new script, or open the old Aetlis one. Select all, paste the script below, then File → Save. The header must say <code>@run-at document-end</code> and <code>@version 1.1.49</code>.</li>
+    <li>Install one script, not both. Players use the normal script. Owners use the admin script. Paste it into Tampermonkey, then File → Save. The header must say <code>@run-at document-end</code> and <code>@version 1.1.50</code>.</li>
     <li>Open <a href="https://aetlis.io/">aetlis.io</a> and wait for the Mavor button.</li>
   </ol>
+  <h2>Normal</h2>
   <textarea id="src" readonly>${script.replace(/</g, "&lt;")}</textarea>
-  <p><button type="button" id="copy">Copy script</button></p>
+  <p><button type="button" id="copy">Copy normal script</button></p>
+  <h2>Admin</h2>
+  <textarea id="admin" readonly>${adminScript.replace(/</g, "&lt;")}</textarea>
+  <p><button type="button" id="copy-admin">Copy admin script</button></p>
   <script>
-    document.getElementById("copy").onclick = function () {
-      navigator.clipboard.writeText(document.getElementById("src").value);
-      this.textContent = "Copied";
-    };
+    function copyFrom(id, button) {
+      navigator.clipboard.writeText(document.getElementById(id).value);
+      button.textContent = "Copied";
+    }
+    document.getElementById("copy").onclick = function () { copyFrom("src", this); };
+    document.getElementById("copy-admin").onclick = function () { copyFrom("admin", this); };
   </script>
 </body>
 </html>

@@ -17,6 +17,140 @@
         }
     }
     window.__aetlisNameHex = aetlisNameHex;
+    window.__aetlisKlipyKey = window.__aetlisKlipyKey || "ny1bVvDRqqln9hnVkAWmWbT27Vk8B8kroVEpTqiCAs4oLtMmN5RqsGTH5HXY1sRR";
+    window.__aetlisChatMedia = function (text) {
+        var out = []
+            , seen = {}
+            , re = /https?:\/\/[^\s<>"']+/gi
+            , s = String(text || "")
+            , m;
+        while ((m = re.exec(s))) {
+            var u = m[0].replace(/[),.;!?]+$/g, "");
+            if (seen[u])
+                continue;
+            if (/\.(gif|png|jpe?g|webp)(\?|#|$)/i.test(u) || /(^|\.)klipy\.com|tenor\.com|giphy\.com|discordapp\.(net|com)/i.test(u))
+                seen[u] = 1,
+                    out.push(u)
+        }
+        return out
+    };
+    window.__aetlisOpenStickers = function () {
+        var box = document.getElementById("aetlis-stickers");
+        if (box) {
+            box._aetlisPlace && window.removeEventListener("resize", box._aetlisPlace);
+            box.parentNode.removeChild(box);
+            return
+        }
+        var key = window.__aetlisKlipyKey;
+        if (!key)
+            return;
+        var customer = localStorage.aetlisKlipyCustomer;
+        if (!customer) {
+            customer = "a" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+            localStorage.aetlisKlipyCustomer = customer
+        }
+        box = document.createElement("div");
+        box.id = "aetlis-stickers";
+        box.innerHTML = '<div class="aetlis-sticker-bar"><button type="button" data-kind="stickers" class="on">Stickers</button><button type="button" data-kind="gifs">GIFs</button><input type="search" placeholder="Search" spellcheck="false"><button type="button" data-close="1">Close</button></div><div class="aetlis-sticker-grid"></div><a class="aetlis-sticker-credit" href="https://klipy.com" target="_blank" rel="noreferrer">KLIPY</a>';
+        document.body.appendChild(box);
+        function place() {
+            var chat = document.querySelector(".chat-container .chatbox") || document.querySelector(".chatbox");
+            if (!chat)
+                return;
+            var r = chat.getBoundingClientRect();
+            box.style.left = Math.max(0, r.left) + "px";
+            box.style.width = r.width + "px";
+            box.style.bottom = Math.max(8, window.innerHeight - r.top + 8) + "px"
+        }
+        function close() {
+            window.removeEventListener("resize", place);
+            if (box.parentNode)
+                box.parentNode.removeChild(box)
+        }
+        box._aetlisPlace = place;
+        place();
+        window.addEventListener("resize", place);
+        var kind = "stickers"
+            , grid = box.querySelector(".aetlis-sticker-grid")
+            , input = box.querySelector("input")
+            , timer = 0;
+        function pickUrl(file) {
+            var cands = []
+                , sizes = ["sm", "xs", "md", "hd"];
+            for (var i = 0; i < sizes.length; i++) {
+                var g = file && file[sizes[i]] && file[sizes[i]].gif && file[sizes[i]].gif.url;
+                if (g)
+                    cands.push(g)
+            }
+            cands.sort(function (a, b) { return a.length - b.length });
+            for (var j = 0; j < cands.length; j++)
+                if (cands[j].length <= 120)
+                    return cands[j];
+            return ""
+        }
+        function paint(items) {
+            grid.innerHTML = "";
+            if (!items.length) {
+                grid.textContent = "Nothing found";
+                return
+            }
+            items.forEach(function (item) {
+                var btn = document.createElement("button");
+                btn.type = "button";
+                var img = document.createElement("img");
+                img.alt = item.title || "";
+                img.src = item.preview || item.url;
+                btn.appendChild(img);
+                btn.addEventListener("click", function () {
+                    var chat = window.__aetlisChat;
+                    if (chat && item.url) {
+                        chat.Qk = item.url;
+                        chat.hf()
+                    }
+                    close()
+                });
+                grid.appendChild(btn)
+            })
+        }
+        function load(q) {
+            grid.textContent = "Loading…";
+            var path = q ? kind + "/search?q=" + encodeURIComponent(q) + "&" : kind + "/trending?";
+            fetch("https://api.klipy.com/api/v1/" + encodeURIComponent(key) + "/" + path + "page=1&per_page=24&customer_id=" + encodeURIComponent(customer)).then(function (res) {
+                return res.json()
+            }).then(function (json) {
+                var rows = json && json.data && (json.data.data || json.data.items) || [];
+                if (!Array.isArray(rows))
+                    rows = [];
+                paint(rows.map(function (item) {
+                    var file = item && item.file || {}
+                        , url = pickUrl(file)
+                        , preview = file.sm && ((file.sm.webp && file.sm.webp.url) || (file.sm.gif && file.sm.gif.url)) || url;
+                    return { url: url, preview: preview, title: item && item.title || "" }
+                }).filter(function (item) { return item.url }))
+            }).catch(function () {
+                grid.textContent = "Couldn't load stickers"
+            })
+        }
+        box.addEventListener("click", function (ev) {
+            var t = ev.target;
+            if (t && t.getAttribute("data-close")) {
+                close();
+                return
+            }
+            if (t && t.getAttribute("data-kind")) {
+                kind = t.getAttribute("data-kind");
+                box.querySelectorAll("[data-kind]").forEach(function (el) {
+                    el.classList.toggle("on", el === t)
+                });
+                load(input.value.trim())
+            }
+        });
+        input.addEventListener("input", function () {
+            clearTimeout(timer);
+            timer = setTimeout(function () { load(input.value.trim()) }, 250)
+        });
+        load("")
+    };
     window.__aetlisPerkName = function () {
         try {
             if ("true" !== localStorage.aetlisNameColorOn)
@@ -945,6 +1079,18 @@
         }
         ), 500)
     };
+    window.__aetlisPlayerAlive = function (game, pid) {
+        var cells = game && game.Jb;
+        if (!cells)
+            return !1;
+        pid = +pid;
+        for (var i = 0; i < cells.length; i++) {
+            var c = cells[i];
+            if (c && !c.Bf && c.ag && +c.ag.Ga === pid)
+                return !0
+        }
+        return !1
+    };
     window.__aetlisEmitPlayerListNow = function (game) {
         game = game || window.__aetlisGame;
         if (!game || !game.R || !game.Ya || !game.Ya.zc)
@@ -952,10 +1098,23 @@
         if (!game.T || !game.T.aetShowPlayerList)
             return;
         var list = []
-            , players = game.Ya.zc;
+            , players = game.Ya.zc
+            , newest = {};
+        for (var pid0 in players) {
+            var prev = players[pid0];
+            if (!prev || window.__aetlisIsBotPlayer(prev))
+                continue;
+            var prevName = String(prev.lb || prev.Tb || "").trim() || "Unnamed";
+            if (!newest[prevName] || +pid0 > newest[prevName])
+                newest[prevName] = +pid0
+        }
         for (var pid in players) {
             var p = players[pid];
             if (!p || window.__aetlisIsBotPlayer(p))
+                continue;
+            var liveName = String(p.lb || p.Tb || "").trim() || "Unnamed";
+            // Respawn allocates a new id and leaves the old life in memory. Keep the current one.
+            if (!window.__aetlisPlayerAlive(game, pid) && newest[liveName] !== +pid)
                 continue;
             var skin = p.wb || ""
                 , extra = p.vb || {}
@@ -969,9 +1128,10 @@
                 avatar = "https://cdn.discordapp.com/embed/avatars/" + (Number(String(did).slice(-1)) % 6) + ".png";
             list.push({
                 pid: +pid,
+                rowKey: liveName,
                 nickname: nick || "Unnamed",
                 bot: !1,
-                color: p.Rb || "#eeeeee",
+                color: p._aetGradCss || p.Rb || "#eeeeee",
                 colored: !!p.Qb,
                 skinUrl: window.__aetlisSkinUrl(skin),
                 tagId: null != p.xb ? p.xb : null,
@@ -980,8 +1140,15 @@
                 discordAvatar: avatar
             })
         }
+        var nameCount = {};
+        for (var ri = 0; ri < list.length; ri++)
+            nameCount[list[ri].nickname] = (nameCount[list[ri].nickname] || 0) + 1;
+        for (var rk = 0; rk < list.length; rk++)
+            if (nameCount[list[rk].nickname] > 1)
+                list[rk].rowKey = list[rk].nickname + "#" + list[rk].pid;
         list.sort((function (a, b) {
-            return a.pid - b.pid
+            var byName = String(a.nickname).localeCompare(String(b.nickname));
+            return byName || a.pid - b.pid
         }
         )),
             game.R.$emit("aetlis-player-list", list)
@@ -1009,7 +1176,7 @@
                 if (!msg || !aetlisOwnPid(game, msg.Ga))
                     continue;
                 var sender = game.Ya.Bc(msg.Ga);
-                msg.li = sender && sender.Rb || "#ffffff",
+                msg.li = sender && sender._aetGradCss || sender && sender.Rb || "#ffffff",
                     sender && sender.lb && (msg.gi = sender.lb),
                     null != window.__aetlisBadgeBit() && (msg.fi = sender && sender.vb && sender.vb.perk_badges || 0)
             }
@@ -1021,7 +1188,7 @@
                 if (!row || !aetlisOwnPid(game, row.Ga))
                     continue;
                 var entry = game.Ya.Bc(row.Ga);
-                row.Yi = entry && entry.Rb || "#ffffff",
+                row.Yi = entry && entry._aetGradCss || entry && entry.Rb || "#ffffff",
                     row.Zi = !!(entry && entry.Qb),
                     entry && entry.lb && (row.hi = entry.lb),
                     null != window.__aetlisBadgeBit() && (row.fi = entry && entry.vb && entry.vb.perk_badges || 0)
@@ -1081,6 +1248,8 @@
     }
     ));
     window.__aetlisIsApprover = function () {
+        if ("user" === window.__aetlisBuild)
+            return !1;
         var id = window.__aetlisAuth && String(window.__aetlisAuth.discordId || "");
         return "1081792839937175552" === id || "324602124749242379" === id
     };
@@ -1246,11 +1415,35 @@
         }
         return null
     };
+    window.__aetlisMyPerkIds = function () {
+        var ids = {};
+        function add(id) {
+            id = String(id || "").trim();
+            if (id)
+                ids[id] = !0
+        }
+        try {
+            add(window.__aetlisClientId && window.__aetlisClientId());
+            add(localStorage.aetlisClientId)
+        } catch (e) {}
+        var auth = window.__aetlisAuth;
+        if (auth)
+            add(auth.discordId);
+        var gate = window.__aetlisGateSession && window.__aetlisGateSession();
+        if (gate)
+            add(gate.discordId);
+        return ids
+    };
     window.__aetlisNameClaimedByOther = function (name) {
         var nick = String(name || "").trim()
-            , uid = window.__aetlisClientId()
-            , map = window.__aetlisRemotePerks || {};
+            , mine = window.__aetlisMyPerkIds ? window.__aetlisMyPerkIds() : {}
+            , map = window.__aetlisRemotePerks || {}
+            , other = null;
         if (!nick)
+            return null;
+        var authName = String(window.__aetlisAuth && window.__aetlisAuth.name || "").trim();
+        // The Discord account with this display name owns that reserved nick.
+        if (authName && authName === nick)
             return null;
         for (var k in map) {
             var e = map[k];
@@ -1258,12 +1451,40 @@
                 continue;
             if (String(e.name || "").trim() !== nick)
                 continue;
-            if (e.uid && e.uid !== uid)
-                return e;
-            if (!e.uid && window.__aetlisPerkKey(nick) !== k)
-                return e
+            var id = String(e.uid || k || "");
+            if (mine[id] || mine[String(k)] || "anon" === id || "anon" === String(k))
+                continue;
+            other = e
         }
-        return null
+        return other
+    };
+    window.__aetlisReleaseOtherNameClaims = function (name) {
+        var nick = String(name || "").trim()
+            , mine = window.__aetlisMyPerkIds ? window.__aetlisMyPerkIds() : {}
+            , current = String(window.__aetlisClientId && window.__aetlisClientId() || "")
+            , map = window.__aetlisRemotePerks || {}
+            , jobs = [];
+        if (!nick || !window.__aetlisPerkFetch)
+            return Promise.resolve();
+        for (var k in map) {
+            var e = map[k];
+            if (!e || String(e.name || "").trim() !== nick || String(k) === current)
+                continue;
+            var id = String(e.uid || k || "");
+            if ("anon" === String(k) || "anon" === id || (mine[String(k)] && String(k) !== current))
+                jobs.push(window.__aetlisPerkFetch("DELETE", "/perks/" + encodeURIComponent(k) + ".json"));
+            else if (!mine[id] && !mine[String(k)]) {
+                var next = Object.assign({}, e, { name: "", on: !1 });
+                jobs.push(window.__aetlisPerkFetch("PUT", "/perks/" + encodeURIComponent(k) + ".json", next))
+            }
+        }
+        return Promise.all(jobs)
+    };
+    window.__aetlisPlayNick = function () {
+        var nickEl = document.getElementById("nickname")
+            , nick = String(nickEl && nickEl.value || localStorage.nickname || "").trim();
+        nick.length > 15 && (nick = nick.slice(0, 15));
+        return nick || "Unnamed"
     };
     window.__aetlisDualIdentity = function () {
         var nick = String(localStorage.dualNickname || "").trim()
@@ -1272,11 +1493,55 @@
             , skinEl = document.getElementById("skinurl");
         if (!nick)
             nick = String(nickEl && nickEl.value || localStorage.nickname || "").trim();
+        if (!nick)
+            nick = "Unnamed";
         if (!skin)
             skin = String(skinEl && skinEl.value || localStorage.skinUrl || "").trim();
         nick.length > 15 && (nick = nick.substring(0, 15));
         skin.length > 200 && (skin = skin.substring(0, 200));
         return { nick: nick, skin: skin }
+    };
+    window.__aetlisReadStops = function (raw) {
+        var parts = String(raw || "").split(",")
+            , out = [];
+        for (var i = 0; i < parts.length && out.length < 4; i++) {
+            var hex = parts[i].replace(/^#/, "").trim().toLowerCase();
+            if (/^[0-9a-f]{6}$/.test(hex))
+                out.push(hex)
+        }
+        return out.length > 1 ? out : null
+    };
+    window.__aetlisNameStops = function (displayName) {
+        try {
+            if ("true" !== localStorage.aetlisNameGradientOn)
+                return null;
+            var reserved = String(localStorage.aetlisPerkName || "").trim()
+                , play = null != displayName ? String(displayName).trim() : String(localStorage.nickname || "").trim();
+            if (!play || play !== reserved)
+                return null;
+            return window.__aetlisReadStops(localStorage.aetlisNameGradient)
+        } catch (e) {
+            return null
+        }
+    };
+    window.__aetlisGradCss = function (stops) {
+        if (!stops || stops.length < 2)
+            return "";
+        return "linear-gradient(90deg," + stops.map(function (h) { return "#" + String(h).replace(/^#/, "") }).join(",") + ")"
+    };
+    window.__aetlisIsGrad = function (color) {
+        return "string" == typeof color && 0 === color.indexOf("linear-gradient")
+    };
+    window.__aetlisNameCss = function (color) {
+        if (window.__aetlisIsGrad(color))
+            return { backgroundImage: color };
+        return { color: color || "#ffffff" }
+    };
+    window.__aetlisChatPlain = function (text) {
+        return String(text || "").replace(/https?:\/\/[^\s<>"']+/gi, function (raw) {
+            var u = raw.replace(/[),.;!?]+$/g, "");
+            return window.__aetlisChatMedia && window.__aetlisChatMedia(u).length ? "" : raw
+        }).replace(/\s{2,}/g, " ").trim()
     };
     window.__aetlisBuildPerkBody = function () {
         var reserved = String(localStorage.aetlisPerkName || "").trim().slice(0, 15)
@@ -1288,6 +1553,11 @@
             , hex = String(localStorage.aetlisNameColor || "").replace(/^#/, "").trim().toLowerCase()
             , cellOn = "true" === localStorage.aetlisCellColorOn
             , cell = String(localStorage.aetlisCellColor || "").replace(/^#/, "").trim().toLowerCase()
+            , borderOn = "true" === localStorage.aetlisCellBorderOn
+            , border = String(localStorage.aetlisCellBorder || "").replace(/^#/, "").trim().toLowerCase()
+            , borderSize = parseInt(localStorage.aetlisCellBorderSize || "8", 10) || 8
+            , gradOn = "true" === localStorage.aetlisNameGradientOn
+            , gradient = window.__aetlisReadStops && window.__aetlisReadStops(localStorage.aetlisNameGradient)
             , badge = parseInt(localStorage.aetlisBadge || "0", 10) || 0
             , hat = String(localStorage.aetlisHatUrl || "").trim()
             , aliases = []
@@ -1305,6 +1575,13 @@
             hex = "";
         if (!cellOn || !/^[0-9a-f]{6}$/.test(cell))
             cell = "";
+        if (!borderOn || !/^[0-9a-f]{6}$/.test(border))
+            border = "";
+        if (!isFinite(borderSize))
+            borderSize = 8;
+        borderSize = Math.max(2, Math.min(24, borderSize));
+        if (!gradOn || !gradient)
+            gradient = null;
         // Hats/badges apply to every nick this client uses (not locked to reserved color name)
         addAlias(reserved),
             addAlias(nick),
@@ -1326,6 +1603,9 @@
             name: name,
             color: hex || null,
             cell: cell || null,
+            border: border || null,
+            borderSize: border ? borderSize : null,
+            gradient: gradient,
             badge: badge > 0 ? badge : 0,
             hat: hat || "",
             still: "true" === localStorage.aetlisOwnHatStatic,
@@ -1435,6 +1715,34 @@
             return String(rem.cell).toLowerCase();
         return ""
     };
+    window.__aetlisCellBorderFor = function (player) {
+        if (!player)
+            return "";
+        if (player.yb) {
+            if ("true" !== localStorage.aetlisCellBorderOn)
+                return "";
+            var own = String(localStorage.aetlisCellBorder || "").replace(/^#/, "").trim().toLowerCase();
+            return /^[0-9a-f]{6}$/.test(own) ? own : ""
+        }
+        var nick = player.Tb || player.lb || ""
+            , rem = window.__aetlisRemotePerk && window.__aetlisRemotePerk(nick);
+        if (rem && rem.border && /^[0-9a-f]{6}$/.test(String(rem.border)))
+            return String(rem.border).toLowerCase();
+        return ""
+    };
+    window.__aetlisCellBorderSizeFor = function (player) {
+        var n = 8;
+        if (player && player.yb)
+            n = parseInt(localStorage.aetlisCellBorderSize || "8", 10);
+        else if (player) {
+            var rem = window.__aetlisRemotePerk && window.__aetlisRemotePerk(player.Tb || player.lb || "");
+            if (rem && null != rem.borderSize)
+                n = parseInt(rem.borderSize, 10)
+        }
+        if (!isFinite(n))
+            n = 8;
+        return Math.max(2, Math.min(24, n))
+    };
     window.__aetlisApplyCellColors = function () {
         var game = window.__aetlisGame;
         if (!game || !game.Ya || !game.Ya.zc)
@@ -1443,7 +1751,9 @@
         for (var id in players) {
             var player = players[id];
             if (player && "function" == typeof player._aetSetCellColor)
-                player._aetSetCellColor(window.__aetlisCellHexFor(player))
+                player._aetSetCellColor(window.__aetlisCellHexFor(player));
+            if (player && "function" == typeof player._aetSetCellBorder)
+                player._aetSetCellBorder(window.__aetlisCellBorderFor(player), window.__aetlisCellBorderSizeFor(player))
         }
     };
     window.__aetlisPullPerks = function () {
@@ -2187,6 +2497,17 @@
                         this.tb.wa.render(wrap2, this.Ab, !1);
                         wrap2.destroy(!0)
                     }
+                    if (this._aetBorderHex && !this.dc) {
+                        var tb = D / 2
+                            , wrapB = new PIXI.Container
+                            , GB = new PIXI.Graphics;
+                        wrapB.position.set(tb, tb);
+                        GB.lineStyle(this._aetBorderSize || 8, parseInt(this._aetBorderHex, 16), 1, 0);
+                        GB.drawCircle(0, 0, Math.max(2, tb - 8));
+                        wrapB.addChild(GB);
+                        this.tb.wa.render(wrapB, this.Ab, !1);
+                        wrapB.destroy(!0)
+                    }
                 }
                 _aetSetTrigOutline(on) {
                     this._aetTrigOut = !!on,
@@ -2220,6 +2541,21 @@
                             this.Eb()
                     } catch (e) {}
                 }
+                _aetSetCellBorder(hex, size) {
+                    try {
+                        hex = String(hex || "").replace(/^#/, "").toLowerCase();
+                        /^[0-9a-f]{6}$/.test(hex) || (hex = "");
+                        size = parseInt(size, 10);
+                        if (!isFinite(size))
+                            size = this._aetBorderSize || 8;
+                        size = Math.max(2, Math.min(24, size));
+                        if (this._aetBorderHex === hex && this._aetBorderSize === size)
+                            return;
+                        this._aetBorderHex = hex;
+                        this._aetBorderSize = size;
+                        this.Eb()
+                    } catch (e) {}
+                }
                 Ob(x) {
                     return x || (x = null),
                         x !== this.xb && (this.xb = x,
@@ -2234,29 +2570,46 @@
                 }
                 Sb(x) {
                     var fill = this.vb.perk_color || this.vb.nameColor;
+                    // An empty nickname is sent as Unnamed. The server otherwise labels that cell Spectator.
+                    if (this.yb && window.__aetlisPlayNick && "Unnamed" === window.__aetlisPlayNick()) {
+                        var shown = null == x ? "" : String(x).trim();
+                        if ("Spectator" === shown || (!shown && "Spectator" === this.Tb))
+                            x = "Unnamed"
+                    }
                     // Keep a known name — empty stubs (cells before identity) must not wipe it
                     if (null == x || "" === x) {
                         if (this.Tb && "Unnamed" !== this.Tb)
                             return !1;
                         x = "Unnamed"
                     }
+                    this._aetGrad = null;
                     if (this.yb) {
                         // Color only if the live cell name matches the reserved perk name.
                         // Do not use menu localStorage.nickname (that only applies after respawn).
                         var local = window.__aetlisNameHex && window.__aetlisNameHex(x);
-                        fill = local || null
+                        fill = local || null,
+                            this._aetGrad = window.__aetlisNameStops && window.__aetlisNameStops(x)
                     } else if (window.__aetlisRemotePerk) {
                         var rem = window.__aetlisRemotePerk(x);
                         // Color stays on the reserved perk name. Badge and hat still follow aliases.
-                        if (rem && rem.on !== !1 && rem.color && String(rem.name || "").trim() === String(x || "").trim())
-                            fill = rem.color
+                        if (rem && rem.on !== !1 && String(rem.name || "").trim() === String(x || "").trim()) {
+                            if (rem.color)
+                                fill = rem.color;
+                            if (rem.gradient && rem.gradient.length > 1)
+                                this._aetGrad = rem.gradient
+                        }
                     }
-                    var changed = (this.Tb !== x || this.Ub != fill) && (this.Tb = x,
+                    this._aetGradCss = this._aetGrad && window.__aetlisGradCss ? window.__aetlisGradCss(this._aetGrad) : "";
+                    var gradKey = this._aetGrad ? this._aetGrad.join(",") : "";
+                    var changed = (this.Tb !== x || this.Ub != fill || this._aetGradKey !== gradKey) && (this.Tb = x,
                         this.Ub = fill,
+                        this._aetGradKey = gradKey,
                         this.Vb(),
                         !0);
                     if ("function" == typeof this._aetSetCellColor && window.__aetlisCellHexFor)
                         this._aetSetCellColor(window.__aetlisCellHexFor(this));
+                    if ("function" == typeof this._aetSetCellBorder && window.__aetlisCellBorderFor)
+                        this._aetSetCellBorder(window.__aetlisCellBorderFor(this), window.__aetlisCellBorderSizeFor && window.__aetlisCellBorderSizeFor(this));
                     return changed
                 }
                 Vb() {
@@ -2274,9 +2627,15 @@
                     }
                 }
                 Wb(x, P) {
-                    this.Xb ? this.Xb.text = x : this.Xb = new PIXI.Text(x, M.Zb),
-                        this.Xb.style.fill = null != P ? P : 16777215,
-                        this.Xb.updateText()
+                    this.Xb ? this.Xb.text = x : this.Xb = new PIXI.Text(x, M.Zb);
+                    if (this._aetGrad && this._aetGrad.length > 1) {
+                        this.Xb.style.fill = this._aetGrad.map(function (h) { return "#" + String(h).replace(/^#/, "") });
+                        this.Xb.style.fillGradientType = 1
+                    } else {
+                        this.Xb.style.fill = null != P ? P : 16777215;
+                        this.Xb.style.fillGradientType = 0
+                    }
+                    this.Xb.updateText()
                 }
                 ac(x) {
                     return x || (x = null),
@@ -2330,14 +2689,15 @@
                     }
                     x = M.rc && x,
                         P = M.sc && P,
-                        j = M.tc && j,
-                        P && !this.dc ? this.fc ? (this.fc.visible = !0,
-                            this.Eb()) : this.wb && this.ec() : !P && this.dc && (this.bc(),
-                                this.fc && (this.fc.visible = !1,
-                                    this.Eb())),
-                        this.uc = x,
+                        j = M.tc && j;
+                    var wasSkin = this.dc;
+                    this.uc = x,
                         this.dc = P,
-                        this.vc = j
+                        this.vc = j,
+                        P && !wasSkin ? this.fc ? (this.fc.visible = !0,
+                            this.Eb()) : this.wb && this.ec() : !P && wasSkin && (this.bc(),
+                                this.fc && (this.fc.visible = !1,
+                                    this.Eb()))
                 }
                 Mb() {
                     var x = this.tb.wc(this.Ga)
@@ -6053,8 +6413,10 @@
                         var $ = x.Ya.Bc(M);
                         if (!$ || hideBots && window.__aetlisIsBotPlayer && window.__aetlisIsBotPlayer($))
                             continue;
+                        if ("Spectator" === $.lb && $.yb && window.__aetlisPlayNick && "Unnamed" === window.__aetlisPlayNick())
+                            $.Sb("Unnamed");
                         // Backfill once — do not rebuild the player list every leaderboard packet
-                        if ($._serverName && (!$.lb || "Unnamed" === $.lb) && $.Sb($._serverName))
+                        if ($._serverName && "Spectator" !== $._serverName && (!$.lb || "Unnamed" === $.lb) && $.Sb($._serverName))
                             named = !0;
                         j.push({
                             Ga: M,
@@ -6100,6 +6462,11 @@
                                 continue
                         }
                         // Prefer a real name from leaderboard text over Unnamed stubs
+                        if ($.Ga && "Spectator" === $.hi) {
+                            var selfNamed = x.Ya.Bc($.Ga);
+                            if (selfNamed && selfNamed.yb && window.__aetlisPlayNick && "Unnamed" === window.__aetlisPlayNick())
+                                $.hi = "Unnamed"
+                        }
                         if ($.Ga && $.hi && "N/A" !== $.hi && "Unnamed" !== $.hi) {
                             var named = x.Ya.Bc($.Ga);
                             if (named && (!named.Tb || "Unnamed" === named.Tb) && named.Sb($.hi))
@@ -6222,7 +6589,8 @@
                                 delete M.re),
                             M.Za++,
                             M.ph(!0),
-                            M.Ya.Dc();
+                            M.Ya.Dc(),
+                            window.__aetlisEmitPlayerList && window.__aetlisEmitPlayerList(M);
                         break;
                     case 11:
                         var It = L.basic(M, P);
@@ -7544,7 +7912,9 @@
                         }
                     })
                 }
-                )), 1), x._v(" "), P("input", {
+                )), 1), x._v(" "), P("div", {
+                    staticClass: "aetlis-chat-input"
+                }, [P("input", {
                     directives: [{
                         name: "model",
                         rawName: "v-model",
@@ -7557,7 +7927,7 @@
                         type: "text",
                         spellcheck: "false",
                         autocomplete: "off",
-                        maxlength: "100",
+                        maxlength: "120",
                         tabindex: "-1",
                         placeholder: "Type your message here"
                     },
@@ -7572,7 +7942,19 @@
                             P.target.composing || (x.Qk = P.target.value)
                         }
                     }
-                })])], 2)
+                }), P("button", {
+                    staticClass: "aetlis-sticker-btn",
+                    attrs: {
+                        type: "button"
+                    },
+                    on: {
+                        click: function (P) {
+                            P.preventDefault(),
+                                P.stopPropagation(),
+                                window.__aetlisOpenStickers && window.__aetlisOpenStickers()
+                        }
+                    }
+                }, [x._v("GIF")])])])], 2)
             };
             I._withStripped = !0;
             var T = function () {
@@ -7597,9 +7979,10 @@
                 }), x._v(" "), P("span", {
                     staticClass: "message-from-name",
                     class: {
-                        underline: x.gb.mi
+                        underline: x.gb.mi,
+                        "aetlis-grad": window.__aetlisIsGrad && window.__aetlisIsGrad(x.gb.li)
                     },
-                    style: {
+                    style: window.__aetlisNameCss ? window.__aetlisNameCss(x.gb.li) : {
                         color: x.gb.li
                     },
                     attrs: {
@@ -7614,7 +7997,17 @@
                     style: {
                         color: x.gb.ii
                     }
-                }, [x._v(x._s(x.gb.hi))])])
+                }, (window.__aetlisChatPlain && window.__aetlisChatPlain(x.gb.hi) ? [x._v(x._s(window.__aetlisChatPlain(x.gb.hi)))] : []).concat((window.__aetlisChatMedia ? window.__aetlisChatMedia(x.gb.hi) : []).map(function (u, M) {
+                    return P("img", {
+                        key: M,
+                        staticClass: "aetlis-chat-gif",
+                        attrs: {
+                            src: u,
+                            alt: "",
+                            draggable: "false"
+                        }
+                    })
+                })))])
             };
             T._withStripped = !0;
             var A = function () {
@@ -7902,12 +8295,14 @@
                     }), x._v(" "), P("span", {
                         staticClass: "leaderboard-text",
                         class: {
-                            spectating: !x.qa.Td
+                            spectating: !x.qa.Td,
+                            "aetlis-grad": window.__aetlisIsGrad && window.__aetlisIsGrad(j.Yi)
                         },
-                        style: {
-                            color: j.Yi,
+                        style: Object.assign({
                             fontWeight: j.Zi ? "bold" : "normal"
-                        },
+                        }, window.__aetlisNameCss ? window.__aetlisNameCss(j.Yi) : {
+                            color: j.Yi
+                        }),
                         attrs: {
                             tip: j.Ga ? "Click to spectate player" : ""
                         },
@@ -7924,7 +8319,7 @@
                         }
                     }, [x._v("\r\n                    " + x._s(j.hi) + "\r\n                ")]) : [x._v(x._s(j.hi))]], 2), x._v(" "), j.Cg ? P("span", {
                         staticClass: "leaderboard-score",
-                        style: {
+                        style: window.__aetlisIsGrad && window.__aetlisIsGrad(j.Yi) ? {} : {
                             color: j.Yi
                         }
                     }, [x._v("\r\n                " + x._s(j.Cg) + "\r\n            ")]) : x._e()], 1)
@@ -7942,7 +8337,7 @@
                     }
                 }, x._l(x.playerRows, (function (j) {
                     return P("div", {
-                        key: j.pid,
+                        key: j.rowKey || j.nickname || j.pid,
                         staticClass: "connection-row"
                     }, [P("img", {
                         staticClass: "conn-user-icon",
@@ -7966,10 +8361,14 @@
                             }
                         }
                     }, [P("span", {
-                        style: {
-                            color: j.color || "#eeeeee",
+                        class: {
+                            "aetlis-grad": window.__aetlisIsGrad && window.__aetlisIsGrad(j.color)
+                        },
+                        style: Object.assign({
                             fontWeight: j.colored ? "bold" : "normal"
-                        }
+                        }, window.__aetlisNameCss ? window.__aetlisNameCss(j.color || "#eeeeee") : {
+                            color: j.color || "#eeeeee"
+                        })
                     }, [x._v(x._s((j.nickname || "Unnamed").slice(0, 10)))]), x._v(" "), P("span", {
                         staticClass: "conn-user-id"
                     }, [x._v("(id: " + x._s(j.pid) + (null != j.tagId && "" !== j.tagId ? " · tag: " + j.tagId : "") + ")")])])])
@@ -10724,7 +11123,10 @@
                         staticClass: "player-nr"
                     }, [x._v(x._s(M + 1) + ".")]), x._v(" "), P("span", {
                         staticClass: "player-name",
-                        style: {
+                        class: {
+                            "aetlis-grad": window.__aetlisIsGrad && window.__aetlisIsGrad(j.Yi)
+                        },
+                        style: window.__aetlisNameCss ? window.__aetlisNameCss(j.Yi) : {
                             color: j.Yi
                         }
                     }, [P("badges", {
@@ -13642,6 +14044,23 @@
                         cellHex: cellHex,
                         savedCellHex: cellHex,
                         cellOn: "true" === localStorage.aetlisCellColorOn,
+                        borderHex: (function () {
+                            var b = String(localStorage.aetlisCellBorder || "ffffff").replace(/^#/, "");
+                            return /^[0-9a-fA-F]{6}$/.test(b) ? b.toLowerCase() : "ffffff"
+                        })(),
+                        savedBorderHex: (function () {
+                            var b = String(localStorage.aetlisCellBorder || "ffffff").replace(/^#/, "");
+                            return /^[0-9a-fA-F]{6}$/.test(b) ? b.toLowerCase() : "ffffff"
+                        })(),
+                        borderOn: "true" === localStorage.aetlisCellBorderOn,
+                        borderSize: Math.max(2, Math.min(24, parseInt(localStorage.aetlisCellBorderSize || "8", 10) || 8)),
+                        savedBorderSize: Math.max(2, Math.min(24, parseInt(localStorage.aetlisCellBorderSize || "8", 10) || 8)),
+                        gradOn: "true" === localStorage.aetlisNameGradientOn,
+                        savedGradOn: "true" === localStorage.aetlisNameGradientOn,
+                        gradA: (window.__aetlisReadStops(localStorage.aetlisNameGradient) || [hex, "3d7eff"])[0],
+                        gradB: (window.__aetlisReadStops(localStorage.aetlisNameGradient) || [hex, "3d7eff"])[1] || "3d7eff",
+                        savedGradA: (window.__aetlisReadStops(localStorage.aetlisNameGradient) || [hex, "3d7eff"])[0],
+                        savedGradB: (window.__aetlisReadStops(localStorage.aetlisNameGradient) || [hex, "3d7eff"])[1] || "3d7eff",
                         name: name,
                         savedName: name,
                         badge: window.__aetlisBadgeBit() || 0,
@@ -13658,10 +14077,18 @@
                         return this.savedName || ("string" == typeof localStorage.nickname ? localStorage.nickname.trim() : "")
                     },
                     canSet() {
-                        return this.name.trim() !== this.savedName || this.hex !== this.savedHex || !this.enabled
+                        return this.name.trim() !== this.savedName || this.hex !== this.savedHex || !this.enabled || this.gradOn !== this.savedGradOn || this.gradA !== this.savedGradA || this.gradB !== this.savedGradB
                     },
                     canSetCell() {
                         return this.cellHex !== this.savedCellHex || !this.cellOn
+                    },
+                    canSetBorder() {
+                        return this.borderHex !== this.savedBorderHex || !this.borderOn || this.borderSize !== this.savedBorderSize
+                    },
+                    gradPreview() {
+                        if (!this.gradOn)
+                            return { color: "#" + this.hex };
+                        return { backgroundImage: "linear-gradient(90deg,#" + this.gradA + ",#" + this.gradB + ")" }
                     },
                     selectedHat() {
                         for (var i = 0; i < this.hats.length; i++)
@@ -13692,9 +14119,15 @@
                             localStorage.aetlisPerkName = name,
                             localStorage.aetlisNameColor = this.hex,
                             localStorage.aetlisNameColorOn = "true",
+                            localStorage.aetlisNameGradientOn = this.gradOn ? "true" : "false",
+                            localStorage.aetlisNameGradient = this.gradA + "," + this.gradB,
+                            this.savedGradOn = this.gradOn,
+                            this.savedGradA = this.gradA,
+                            this.savedGradB = this.gradB,
                             window.dispatchEvent(new Event("aetlis-name-color")),
                             window.__aetlisRefreshNameColor && window.__aetlisRefreshNameColor(),
-                            window.__aetlisPublishPerks && window.__aetlisPublishPerks()
+                            window.__aetlisPublishPerks && window.__aetlisPublishPerks(),
+                            window.__aetlisReleaseOtherNameClaims && window.__aetlisReleaseOtherNameClaims(name)
                     },
                     commit() {
                         var self = this
@@ -13734,6 +14167,15 @@
                         x = String(x || "").replace(/^#/, ""),
                             /^[0-9a-fA-F]{6}$/.test(x) && (this.hex = x.toLowerCase())
                     },
+                    toggleGrad() {
+                        this.gradOn = !this.gradOn
+                    },
+                    setGrad(which, x) {
+                        x = String(x || "").replace(/^#/, "");
+                        if (!/^[0-9a-fA-F]{6}$/.test(x))
+                            return;
+                        "b" === which ? this.gradB = x.toLowerCase() : this.gradA = x.toLowerCase()
+                    },
                     setCellHex(x) {
                         x = String(x || "").replace(/^#/, ""),
                             /^[0-9a-fA-F]{6}$/.test(x) && (this.cellHex = x.toLowerCase())
@@ -13747,6 +14189,37 @@
                                 self.cellOn = !0,
                                 localStorage.aetlisCellColor = self.cellHex,
                                 localStorage.aetlisCellColorOn = "true",
+                                window.__aetlisApplyCellColors && window.__aetlisApplyCellColors(),
+                                window.__aetlisPublishPerks && window.__aetlisPublishPerks()
+                        })
+                    },
+                    setBorderHex(x) {
+                        x = String(x || "").replace(/^#/, ""),
+                            /^[0-9a-fA-F]{6}$/.test(x) && (this.borderHex = x.toLowerCase())
+                    },
+                    setBorderSize(x, publish) {
+                        var n = parseInt(x, 10);
+                        if (!isFinite(n))
+                            return;
+                        this.borderSize = Math.max(2, Math.min(24, n));
+                        if (!this.borderOn)
+                            return;
+                        localStorage.aetlisCellBorderSize = String(this.borderSize);
+                        this.savedBorderSize = this.borderSize;
+                        window.__aetlisApplyCellColors && window.__aetlisApplyCellColors();
+                        publish && window.__aetlisPublishPerks && window.__aetlisPublishPerks()
+                    },
+                    commitBorder() {
+                        var self = this;
+                        (window.__aetlisPerkConfirm ? window.__aetlisPerkConfirm("Set your cell border to #" + this.borderHex + "?\nIt shows when skins are hidden, or when you have no skin.", "Set") : Promise.resolve(!0)).then(function (ok) {
+                            if (!ok)
+                                return;
+                            self.savedBorderHex = self.borderHex,
+                                self.borderOn = !0,
+                                localStorage.aetlisCellBorder = self.borderHex,
+                                localStorage.aetlisCellBorderOn = "true",
+                                localStorage.aetlisCellBorderSize = String(self.borderSize),
+                                self.savedBorderSize = self.borderSize,
                                 window.__aetlisApplyCellColors && window.__aetlisApplyCellColors(),
                                 window.__aetlisPublishPerks && window.__aetlisPublishPerks()
                         })
@@ -14021,7 +14494,47 @@
                         }
                     }, [x._v("Set")])]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
-                    }, [x._v("Color only when Nickname matches. Name is reserved in the extension DB — others can't claim it.")])] : [P("div", {
+                    }, [x._v("Color only when Nickname matches. Name is reserved in the extension DB — others can't claim it.")]), x._v(" "), P("div", {
+                        staticClass: "perk-color-wrapper cell-color-row aetlis-grad-row"
+                    }, [P("span", {
+                        staticClass: "perk-color-label"
+                    }, [x._v("Gradient")]), x._v(" "), P("button", {
+                        staticClass: "perk-color-update aetlis-grad-toggle",
+                        class: {
+                            on: x.gradOn
+                        },
+                        attrs: {
+                            type: "button"
+                        },
+                        on: {
+                            click: x.toggleGrad
+                        }
+                    }, [x._v(x.gradOn ? "On" : "Off")]), x._v(" "), x.gradOn ? [P("span", {
+                        staticClass: "perk-color-option"
+                    }, [P("color-option", {
+                        attrs: {
+                            Nm: x.gradA
+                        },
+                        on: {
+                            input: function (v) {
+                                x.setGrad("a", v)
+                            }
+                        }
+                    })], 1), x._v(" "), P("span", {
+                        staticClass: "perk-color-option"
+                    }, [P("color-option", {
+                        attrs: {
+                            Nm: x.gradB
+                        },
+                        on: {
+                            input: function (v) {
+                                x.setGrad("b", v)
+                            }
+                        }
+                    })], 1), x._v(" "), P("span", {
+                        staticClass: "aetlis-grad-preview aetlis-grad",
+                        style: x.gradPreview
+                    }, [x._v(x._s((x.name || x.reservedName || "Name").slice(0, 15)))])] : x._e()], 2)] : [P("div", {
                         staticClass: "confirm-row"
                     }, [P("span", [x.reservedName ? [x._v("Reserved name "), P("b", [x._v(x._s(x.reservedName))])] : [x._v("Shows in chat, minimap, name and leaderboard. Name is exclusive.")]], 2), x._v(" "), P("button", {
                         staticClass: "confirm-button",
@@ -14103,7 +14616,69 @@
                         }
                     }, [x._v("Set")])]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
-                    }, [x._v("Saved for your account. Other extension users see this color on your cells.")])])]), x._v(" "), P("div", {
+                    }, [x._v("Saved for your account. Other extension users see this color on your cells.")]), x._v(" "), P("div", {
+                        staticClass: "perk-color-wrapper cell-color-row"
+                    }, [P("span", [x._v("Hex")]), x._v(" "), P("span", {
+                        staticClass: "perk-color-label"
+                    }, [x._v("Border")]), x._v(" "), P("input", {
+                        staticClass: "perk-name cell-hex",
+                        attrs: {
+                            type: "text",
+                            spellcheck: "false",
+                            maxlength: "7",
+                            placeholder: "#ffffff"
+                        },
+                        domProps: {
+                            value: "#" + x.borderHex
+                        },
+                        on: {
+                            input: function (P) {
+                                x.setBorderHex(P.target.value)
+                            }
+                        }
+                    }), x._v(" "), P("span", {
+                        staticClass: "perk-color-option"
+                    }, [P("color-option", {
+                        attrs: {
+                            Nm: x.borderHex
+                        },
+                        on: {
+                            input: x.setBorderHex
+                        }
+                    })], 1), x._v(" "), P("button", {
+                        staticClass: "perk-color-update",
+                        attrs: {
+                            disabled: !x.canSetBorder
+                        },
+                        on: {
+                            click: x.commitBorder
+                        }
+                    }, [x._v("Set")])]), x._v(" "), P("div", {
+                        staticClass: "name-color-tip"
+                    }, [x._v("Shows around your cell only when skins are hidden, or when you have no skin.")]), x._v(" "), P("label", {
+                        staticClass: "aetlis-thickness"
+                    }, [P("span", [x._v("Thickness")]), P("input", {
+                        staticClass: "aetlis-range",
+                        attrs: {
+                            type: "range",
+                            min: "2",
+                            max: "24",
+                            step: "1"
+                        },
+                        domProps: {
+                            value: x.borderSize
+                        },
+                        on: {
+                            input: function (P) {
+                                x.setBorderSize(P.target.value)
+                            },
+                            change: function (P) {
+                                x.setBorderSize(P.target.value, !0)
+                            }
+                        }
+                    }), P("span", {
+                        staticClass: "aetlis-range-val"
+                    }, [x._v(x._s(x.borderSize))])])])]), x._v(" "), P("div", {
                         staticClass: "section row hats-section"
                     }, [P("div", {
                         staticClass: "header"
@@ -16889,7 +17464,8 @@
                     ))
                 },
                 Pd: function (x) {
-                    x.ff(document.getElementById("nickname").value),
+                    var nick = window.__aetlisPlayNick ? window.__aetlisPlayNick() : document.getElementById("nickname").value;
+                    x.ff(nick),
                         x.ff(document.getElementById("skinurl").value),
                         x.ff(document.getElementById("teamtag").value)
                 },

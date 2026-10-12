@@ -79,7 +79,8 @@
                     url: ev.data.url,
                     method: ev.data.method || "GET",
                     body: ev.data.body,
-                    gateApproved: !!(gate && gate.status === "approved" && gate.discordId)
+                    gateApproved: !!(gate && gate.status === "approved" && gate.discordId),
+                    credentials: self.__aetlisHeldCreds || null
                 }, function (res) {
                     var err = chrome.runtime.lastError;
                     window.postMessage({
@@ -160,6 +161,7 @@
             localStorage.removeItem(gateKey);
         } catch (e) {}
         lastSession = null;
+        self.__aetlisHeldCreds = null;
     }
 
     function persistCredentials(c) {
@@ -176,6 +178,7 @@
             avatar: c.avatar || "",
             status: c.status === "approved" ? "approved" : "pending"
         };
+        self.__aetlisHeldCreds = full;
         try {
             chrome.storage.local.set({ aetlisAuth: full });
         } catch (e) {}
@@ -194,6 +197,7 @@
 
     function hide() {
         locked = false;
+        stopStars();
         poll && clearInterval(poll),
             poll = null;
         if (watcher)
@@ -239,24 +243,114 @@
         var style = document.createElement("style");
         style.textContent = "html.aetlis-auth-locked,html.aetlis-auth-locked body{background:#07080d!important;overflow:hidden!important}"
             + "html.aetlis-auth-locked>*:not(#aetlis-auth-gate),html.aetlis-auth-locked body>*:not(#aetlis-auth-gate){display:none!important}"
-            + "#aetlis-auth-gate{position:fixed;inset:0;z-index:2147483646;background:#07080d;color:#f2f3f5;display:flex;align-items:center;justify-content:center;font-family:Ubuntu,Segoe UI,sans-serif}"
-            + "#aetlis-auth-gate .card{width:min(420px,92vw);background:rgba(20,20,25,.96);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:28px 26px 22px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.5)}"
-            + "#aetlis-auth-gate img{width:72px;height:72px;border-radius:16px;background:#5865f2;margin-bottom:12px}"
-            + "#aetlis-auth-gate h1{font-size:22px;margin:0 0 8px}"
-            + "#aetlis-auth-gate p{margin:0;color:rgba(255,255,255,.62);font-size:14px;line-height:1.45}"
-            + "#aetlis-auth-gate button{margin-top:18px;background:#d3371e;border:0;border-radius:4px;box-shadow:0 0 1px 1px #000;color:#dadada;cursor:pointer;font-size:15px;font-weight:600;padding:10px 18px;text-shadow:1px 1px 2px #000}"
-            + "#aetlis-auth-gate button:hover{background:#b82e19}"
-            + "#aetlis-auth-gate .queue{margin-top:18px;text-align:left}"
-            + "#aetlis-auth-gate .queue h2{font-size:13px;font-weight:600;margin:0 0 8px;color:rgba(255,255,255,.5)}"
+            + "#aetlis-auth-gate{position:fixed;inset:0;z-index:2147483646;background:#07080d;color:#dadada;font-family:Nunito,Ubuntu,sans-serif}"
+            + "#aetlis-auth-gate canvas{position:absolute;inset:0;width:100%;height:100%;display:block}"
+            + "#aetlis-auth-gate .card{position:relative;z-index:1;width:min(380px,92vw);margin:18vh auto 0;padding:0 8px}"
+            + "#aetlis-auth-gate .eyebrow{margin:0 0 8px;color:#d3371e;font-family:Ubuntu,sans-serif;font-size:13px;font-weight:700;letter-spacing:.14em}"
+            + "#aetlis-auth-gate .who{display:flex;align-items:center;gap:10px;margin-bottom:12px}"
+            + "#aetlis-auth-gate .who img{width:36px;height:36px;border-radius:4px;object-fit:cover}"
+            + "#aetlis-auth-gate h1{font-family:Ubuntu,sans-serif;font-size:28px;font-weight:700;margin:0 0 8px}"
+            + "#aetlis-auth-gate p{margin:0;color:rgba(218,218,218,.72);font-size:15px;line-height:1.4;max-width:34em}"
+            + "#aetlis-auth-gate .go{margin-top:18px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.14);border-radius:4px;box-shadow:0 0 1px 1px #000;color:#eee;cursor:pointer;font-family:Ubuntu,sans-serif;font-size:15px;font-weight:700;padding:10px 16px}"
+            + "#aetlis-auth-gate .go:hover{background:#d3371e;border-color:#d3371e}"
+            + "#aetlis-auth-gate .queue{margin-top:22px;max-width:380px}"
+            + "#aetlis-auth-gate .queue h2{font-size:12px;font-weight:700;letter-spacing:.08em;margin:0 0 8px;color:rgba(218,218,218,.45);text-transform:uppercase}"
             + "#aetlis-auth-gate .person{display:flex;align-items:center;gap:8px;margin-top:8px}"
-            + "#aetlis-auth-gate .person img{width:32px;height:32px;border-radius:8px;margin:0}"
+            + "#aetlis-auth-gate .person img{width:28px;height:28px;border-radius:4px;margin:0}"
             + "#aetlis-auth-gate .person span{flex:1;min-width:0;font-size:14px}"
-            + "#aetlis-auth-gate .person button{margin-top:0;padding:6px 10px;font-size:13px}";
+            + "#aetlis-auth-gate .person button{background:#d3371e;border:0;border-radius:4px;box-shadow:0 0 1px 1px #000;color:#dadada;cursor:pointer;font-size:13px;font-weight:700;padding:6px 10px}";
         (document.documentElement || document.head).appendChild(style);
         root = document.createElement("div");
         root.id = "aetlis-auth-gate";
         (document.documentElement || document.body).appendChild(root);
         return root;
+    }
+
+    var starCanvas = null
+        , starFrame = 0
+        , starStop = false;
+
+    function stopStars() {
+        starStop = true;
+        if (starFrame)
+            cancelAnimationFrame(starFrame),
+            starFrame = 0;
+    }
+
+    function startStars(node) {
+        if (starCanvas && starCanvas.isConnected)
+            return;
+        stopStars();
+        starStop = false;
+        var canvas = document.createElement("canvas");
+        starCanvas = canvas;
+        node.insertBefore(canvas, node.firstChild);
+        var ctx = canvas.getContext("2d");
+        var w = 0
+            , h = 0
+            , cx = 0
+            , cy = 0;
+        function size() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+            cx = w / 2;
+            cy = h / 2;
+        }
+        size();
+        window.addEventListener("resize", size);
+        function Star() {}
+        Star.prototype.spawn = function () {
+            this.x = Math.random() * w * 2 - w;
+            this.y = Math.random() * h * 2 - h;
+            this.angle = Math.atan2(this.y, this.x);
+            this.radius = 0.1;
+            this.speed = 0.4 + 3.3 * Math.random();
+        };
+        Star.prototype.update = function (dt) {
+            var step = this.speed * dt;
+            this.x += Math.cos(this.angle) * step;
+            this.y += Math.sin(this.angle) * step;
+            this.radius += 0.0035 * step;
+        };
+        var stars = [];
+        for (var i = 0; i < 280; i++) {
+            var star = new Star();
+            star.spawn();
+            stars.push(star);
+        }
+        var last = 0
+            , origin = 0;
+        function frame(now) {
+            if (starStop || !canvas.isConnected) {
+                window.removeEventListener("resize", size);
+                return;
+            }
+            starFrame = requestAnimationFrame(frame);
+            if (!last)
+                last = origin = now;
+            var dt = (now - last) / 6;
+            var age = now - origin - 550;
+            if (age > 0)
+                dt /= Math.pow(3, Math.min(age / 1000, 1.2));
+            ctx.clearRect(0, 0, w, h);
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.beginPath();
+            ctx.fillStyle = "#8d8d8d";
+            ctx.globalAlpha = 0.9;
+            for (var n = 0; n < stars.length; n++) {
+                var s = stars[n];
+                if (s.x < -cx - s.radius || s.x > cx + s.radius || s.y < -cy - s.radius || s.y > cy + s.radius)
+                    s.spawn();
+                s.update(dt);
+                ctx.moveTo(s.x + s.radius, s.y);
+                ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+            }
+            ctx.fill();
+            ctx.restore();
+            last = now;
+        }
+        starFrame = requestAnimationFrame(frame);
     }
 
     function show(session, error) {
@@ -268,28 +362,46 @@
         var node = ensure()
             , name = session && session.name ? session.name : ""
             , pending = session && session.status === "pending";
-        node.innerHTML = "";
+        startStars(node);
+        var oldCard = node.querySelector(".card");
+        if (oldCard)
+            oldCard.parentNode.removeChild(oldCard);
         var card = document.createElement("div");
         card.className = "card";
-        if (session && session.avatar) {
-            var img = document.createElement("img");
-            img.alt = "";
-            img.src = session.avatar;
-            card.appendChild(img);
+        var eyebrow = document.createElement("div");
+        eyebrow.className = "eyebrow";
+        eyebrow.textContent = "AETLIS";
+        card.appendChild(eyebrow);
+        if (session && (session.avatar || name)) {
+            var who = document.createElement("div");
+            who.className = "who";
+            if (session.avatar) {
+                var img = document.createElement("img");
+                img.alt = "";
+                img.src = session.avatar;
+                who.appendChild(img);
+            }
+            if (name) {
+                var whoName = document.createElement("span");
+                whoName.textContent = name;
+                who.appendChild(whoName);
+            }
+            card.appendChild(who);
         }
         var title = document.createElement("h1");
-        title.textContent = pending ? "Waiting for approval" : "Verification required";
+        title.textContent = pending ? "Waiting for approval" : "Log in with Discord";
         var text = document.createElement("p");
         text.textContent = error
             ? error
             : pending
-                ? name + " is signed in. This client stays locked until that Discord account is approved."
-                : "Log in with Discord. Access stays locked until that account is approved.";
+                ? "This client stays locked until that Discord account is approved."
+                : "Sign in once. Access stays locked until an admin approves the account.";
         card.appendChild(title);
         card.appendChild(text);
         var button = document.createElement("button");
         button.type = "button";
-        button.textContent = pending ? "Log out" : "Log in with Discord";
+        button.className = "go";
+        button.textContent = pending ? "Log out" : "Continue with Discord";
         button.addEventListener("click", function () {
             button.disabled = true;
             chrome.runtime.sendMessage({ type: pending ? "aetlis-auth-logout" : "aetlis-auth-login" }, function (res) {
@@ -305,7 +417,7 @@
     }
 
     function loadQueue(card, session) {
-        chrome.runtime.sendMessage({ type: "aetlis-auth-admin", action: "list" }, function (res) {
+        chrome.runtime.sendMessage({ type: "aetlis-auth-admin", action: "list", credentials: self.__aetlisHeldCreds || null }, function (res) {
             if (chrome.runtime.lastError || !res || !res.ok)
                 return;
             var box = document.createElement("div");
@@ -335,7 +447,7 @@
                 approve.textContent = "Approve";
                 approve.addEventListener("click", function () {
                     approve.disabled = true;
-                    chrome.runtime.sendMessage({ type: "aetlis-auth-admin", action: "approve", discordId: row.id }, function () {
+                    chrome.runtime.sendMessage({ type: "aetlis-auth-admin", action: "approve", discordId: row.id, credentials: self.__aetlisHeldCreds || null }, function () {
                         if (session && String(session.discordId) === String(row.id)) {
                             chrome.runtime.sendMessage({ type: "aetlis-auth-poll" }, function (next) {
                                 if (!chrome.runtime.lastError)
@@ -440,7 +552,8 @@
         chrome.runtime.sendMessage({
             type: "aetlis-auth-admin",
             action: ev.data.action || "list",
-            discordId: ev.data.discordId || ""
+            discordId: ev.data.discordId || "",
+            credentials: self.__aetlisHeldCreds || null
         }, function (res) {
             window.postMessage({
                 source: "aetlis-bridge",

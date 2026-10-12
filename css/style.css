@@ -15266,3 +15266,185 @@ input[type=range].slider::-webkit-slider-thumb {
     flex: 0 0 auto;
     margin: 0 !important;
 }
+
+.chatbox {
+    position: relative;
+}
+
+.aetlis-chat-input {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+}
+
+.aetlis-chat-input input,
+.chatbox > .aetlis-chat-input input,
+#chatbox-input {
+    background: transparent;
+    border: 0;
+    flex: 1 1 auto;
+    font-size: 14px;
+    min-width: 0;
+    outline: 0;
+    padding: 0;
+    pointer-events: all;
+    width: auto;
+}
+
+.aetlis-chat-gif {
+    border-radius: 4px;
+    display: inline-block;
+    height: 28px;
+    margin: 0 0 0 4px;
+    object-fit: contain;
+    pointer-events: none;
+    vertical-align: middle;
+    width: 28px;
+}
+
+.message-row {
+    overflow: visible;
+}
+
+.aetlis-sticker-btn {
+    background: rgba(0, 0, 0, .45);
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 4px;
+    color: #dadada;
+    cursor: pointer;
+    flex: 0 0 auto;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 4px 8px;
+}
+
+.aetlis-sticker-btn:hover {
+    background: #d3371e;
+}
+
+#aetlis-stickers {
+    background: rgba(0, 0, 0, .45);
+    border-radius: 4px;
+    bottom: 220px;
+    box-shadow: 0 0 4px 2px #000;
+    box-sizing: border-box;
+    color: #dadada;
+    left: 0;
+    padding: 10px;
+    position: fixed;
+    width: 440px;
+    z-index: 6;
+    backdrop-filter: blur(2px);
+}
+
+.aetlis-sticker-bar {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.aetlis-sticker-bar button,
+.aetlis-sticker-grid button {
+    background: rgba(0, 0, 0, .35);
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 4px;
+    color: #dadada;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.aetlis-sticker-bar button.on {
+    background: #d3371e;
+}
+
+.aetlis-sticker-bar input {
+    flex: 1;
+    min-width: 0;
+    background: rgba(0, 0, 0, .35);
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 4px;
+    color: #dadada;
+    padding: 4px 8px;
+}
+
+.aetlis-sticker-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    max-height: 240px;
+    overflow: auto;
+    margin-top: 8px;
+}
+
+.aetlis-sticker-grid button {
+    padding: 0;
+    aspect-ratio: 1;
+    overflow: hidden;
+}
+
+.aetlis-sticker-grid img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.aetlis-sticker-credit {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, .45);
+    text-align: right;
+}
+
+.aetlis-grad {
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent !important;
+}
+
+.message-from-name.aetlis-grad,
+.leaderboard-text.aetlis-grad,
+.player-name.aetlis-grad,
+#player-list .aetlis-grad {
+    display: inline-block;
+    max-width: 100%;
+    width: auto;
+}
+
+.aetlis-grad-row {
+    margin-top: 8px;
+}
+
+.aetlis-grad-toggle.on {
+    background: #d3371e;
+}
+
+.aetlis-grad-preview {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    margin-left: 4px;
+}
+
+.aetlis-thickness {
+    align-items: center;
+    color: #dadada;
+    display: flex;
+    font-size: 13px;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.aetlis-range {
+    accent-color: #e64a30;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.aetlis-range-val {
+    flex: 0 0 18px;
+    text-align: right;
+}

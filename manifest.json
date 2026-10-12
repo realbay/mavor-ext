@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "Aetlis custom client",
   "version": "1.1.37",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArjnaIl6nSLKTJTxpeZPJeMMJa35bynXQguXu6PYQQFMoW1Xm6qqbX8uS+Aa3Vjt+jngsBxr9h8cwhnD4HcjXQlcF9R8AsGczbX12+J8edQRYp1HQwZHjpB+g0NU0NjeV4qvNg2OEQ4ZTXabdvw17ArztYWTfsbiW0K6sVSS3rVIJerQEMZmXr38gvADXZBVjMcGeHmj6uxV1jdRmvNQnedhihj04mmJPL8/lEZ4UbWQm37wvP14nCRJ2TDXHGM3PJ8WyFV9aFxthKeZUkd3WdNlRsor9iAMsGh6Wlef37qtxNdfoY5K/CXPOBdKcUJ6DmkXkKmWT/ihEAWHsu7p+lwIDAQAB",
   "description": "Loads this folder's client files on aetlis.io, including the colored name tab.",
   "permissions": [
     "declarativeNetRequest",
