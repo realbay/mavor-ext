@@ -14256,6 +14256,32 @@
                     toggleGrad(v) {
                         this.gradOn = "boolean" == typeof v ? v : !this.gradOn
                     },
+                    pickEffect(on) {
+                        if (on) {
+                            this.gradOn = !0;
+                            if (!this.grads || this.grads.length < 2)
+                                this.grads = [this.hex, "5865f2"];
+                            else
+                                this.grads.splice(0, 1, this.hex)
+                        } else {
+                            this.gradOn = !1;
+                            this.grads && this.grads[0] && (this.hex = this.grads[0])
+                        }
+                    },
+                    pickSolid(hex) {
+                        this.gradOn = !1;
+                        this.setHex(hex)
+                    },
+                    pickGradPair(a, b) {
+                        this.setGradStops([a, b])
+                    },
+                    setStop(i, hex) {
+                        hex = String(hex || "").replace(/^#/, "").toLowerCase();
+                        if (!/^[0-9a-f]{6}$/.test(hex) || !this.grads || i < 0 || i >= this.grads.length)
+                            return;
+                        this.grads.splice(i, 1, hex);
+                        0 === i && (this.hex = hex)
+                    },
                     pickGrad(i) {
                         this.gradPick = i
                     },
@@ -14306,8 +14332,16 @@
                         window.__aetlisPublishPerks && window.__aetlisPublishPerks()
                     },
                     setCellHex(x) {
-                        x = String(x || "").replace(/^#/, ""),
-                            /^[0-9a-fA-F]{6}$/.test(x) && (this.cellHex = x.toLowerCase())
+                        x = String(x || "").replace(/^#/, "");
+                        if (!/^[0-9a-fA-F]{6}$/.test(x))
+                            return;
+                        this.cellHex = x.toLowerCase();
+                        if (!this.cellOn)
+                            return;
+                        this.savedCellHex = this.cellHex;
+                        localStorage.aetlisCellColor = this.cellHex;
+                        window.__aetlisApplyCellColors && window.__aetlisApplyCellColors();
+                        window.__aetlisPublishPerks && window.__aetlisPublishPerks()
                     },
                     commitCell() {
                         var self = this;
@@ -14323,8 +14357,16 @@
                         })
                     },
                     setBorderHex(x) {
-                        x = String(x || "").replace(/^#/, ""),
-                            /^[0-9a-fA-F]{6}$/.test(x) && (this.borderHex = x.toLowerCase())
+                        x = String(x || "").replace(/^#/, "");
+                        if (!/^[0-9a-fA-F]{6}$/.test(x))
+                            return;
+                        this.borderHex = x.toLowerCase();
+                        if (!this.borderOn)
+                            return;
+                        this.savedBorderHex = this.borderHex;
+                        localStorage.aetlisCellBorder = this.borderHex;
+                        window.__aetlisApplyCellColors && window.__aetlisApplyCellColors();
+                        window.__aetlisPublishPerks && window.__aetlisPublishPerks()
                     },
                     setBorderSize(x, publish) {
                         var n = parseInt(String(x == null ? "" : x).replace(/px/ig, ""), 10);
@@ -14589,13 +14631,11 @@
                     }, [x._v("Not showing")]) : x._e()]), x._v(" "), P("div", {
                         staticClass: "options"
                     }, [x.enabled ? [P("div", {
-                        staticClass: "perk-color-wrapper"
-                    }, [P("span", {
-                        staticClass: "perk-field-label"
-                    }, [x._v("Name")]), x._v(" "), P("span", {
-                        staticClass: "perk-color-label"
-                    }, [x._v("Color")]), x._v(" "), P("input", {
-                        staticClass: "perk-name",
+                        staticClass: "dns-pick"
+                    }, [P("div", {
+                        staticClass: "dns-name-line"
+                    }, [P("input", {
+                        staticClass: "dns-name",
                         attrs: {
                             type: "text",
                             spellcheck: "false",
@@ -14610,29 +14650,138 @@
                                 P.target.composing || (x.name = P.target.value)
                             }
                         }
-                    }), x._v(" "), P("span", {
-                        staticClass: "perk-color-option"
-                    }, [P("color-option", {
+                    }), x._v(" "), P("button", {
+                        staticClass: "dns-set",
                         attrs: {
-                            Nm: x.hex,
-                            aetGrad: !0,
-                            gradStops: x.gradOn && x.grads.length > 1 ? x.grads : [x.hex]
-                        },
-                        on: {
-                            input: x.setHex,
-                            stops: x.setGradStops
-                        }
-                    })], 1), x._v(" "), P("button", {
-                        staticClass: "perk-color-update",
-                        attrs: {
+                            type: "button",
                             disabled: !x.canSet
                         },
                         on: {
                             click: x.commit
                         }
                     }, [x._v("Set")])]), x._v(" "), P("div", {
+                        staticClass: "dns-heading"
+                    }, [x._v("Choose Effect")]), x._v(" "), P("div", {
+                        staticClass: "dns-effects"
+                    }, [P("button", {
+                        staticClass: "dns-effect",
+                        class: {
+                            "is-on": !x.gradOn
+                        },
+                        attrs: {
+                            type: "button"
+                        },
+                        on: {
+                            click: function () {
+                                x.pickEffect(!1)
+                            }
+                        }
+                    }, [P("span", {
+                        staticClass: "dns-effect-label",
+                        style: {
+                            color: "#" + x.hex
+                        }
+                    }, [x._v("Solid")])]), x._v(" "), P("button", {
+                        staticClass: "dns-effect",
+                        class: {
+                            "is-on": x.gradOn
+                        },
+                        attrs: {
+                            type: "button"
+                        },
+                        on: {
+                            click: function () {
+                                x.pickEffect(!0)
+                            }
+                        }
+                    }, [P("span", {
+                        staticClass: "dns-effect-label",
+                        class: {
+                            "aetlis-grad": x.gradOn && x.grads.length > 1
+                        },
+                        style: x.gradOn && x.grads.length > 1 ? x.gradPreview : {
+                            color: "#" + x.hex
+                        }
+                    }, [x._v("Gradient")])])]), x._v(" "), P("div", {
+                        staticClass: "dns-heading"
+                    }, [x._v("Choose Colour")]), x._v(" "), P("div", {
+                        staticClass: "dns-colors",
+                        class: {
+                            "is-gradient": x.gradOn
+                        }
+                    }, [x.gradOn ? P("div", {
+                        staticClass: "dns-grad-custom",
+                        style: {
+                            backgroundImage: "linear-gradient(90deg," + x.grads.map(function (h) {
+                                return "#" + h
+                            }).join(",") + ")"
+                        }
+                    }, x._l(x.grads, (function (h, i) {
+                        return P("span", {
+                            key: i,
+                            staticClass: "dns-stop"
+                        }, [P("color-option", {
+                            attrs: {
+                                Nm: h
+                            },
+                            on: {
+                                input: function (hex) {
+                                    x.setStop(i, hex)
+                                }
+                            }
+                        })], 1)
+                    })), 2) : P("div", {
+                        staticClass: "dns-custom"
+                    }, [P("color-option", {
+                        attrs: {
+                            Nm: x.hex
+                        },
+                        on: {
+                            input: x.setHex
+                        }
+                    })], 1), x._v(" "), P("div", {
+                        staticClass: "dns-presets"
+                    }, [x.gradOn ? x._l([["2aaea6", "ffc490"], ["26b164", "90eaff"], ["e45eff", "267de0"], ["903cda", "2cda8e"], ["efb4aa", "e46ce2"], ["df4232", "bd8fff"], ["f5983c", "e55ae7"], ["e4541e", "65d7e4"]], (function (pair) {
+                        return P("button", {
+                            key: pair.join("-"),
+                            staticClass: "dns-swatch dns-swatch-grad",
+                            class: {
+                                "is-on": x.grads.length === 2 && x.grads[0] === pair[0] && x.grads[1] === pair[1]
+                            },
+                            style: {
+                                backgroundImage: "linear-gradient(90deg,#" + pair[0] + ",#" + pair[1] + ")"
+                            },
+                            attrs: {
+                                type: "button"
+                            },
+                            on: {
+                                click: function () {
+                                    x.pickGradPair(pair[0], pair[1])
+                                }
+                            }
+                        })
+                    })) : x._l(["18daad", "24e36d", "1c98eb", "c32aff", "fc1965", "c6a615", "0a9d7b", "0fad4b", "0b69a7", "a913e5", "da0149", "f93722"], (function (h) {
+                        return P("button", {
+                            key: h,
+                            staticClass: "dns-swatch",
+                            class: {
+                                "is-on": x.hex === h
+                            },
+                            style: {
+                                backgroundColor: "#" + h
+                            },
+                            attrs: {
+                                type: "button"
+                            },
+                            on: {
+                                click: function () {
+                                    x.pickSolid(h)
+                                }
+                            }
+                        })
+                    }))], 2)]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
-                    }, [x._v("Color only when Nickname matches. Name is reserved in the extension DB — others can't claim it.")])] : [P("div", {
+                    }, [x._v("Color only when Nickname matches. Name is reserved in the extension DB — others can't claim it.")])])] : [P("div", {
                         staticClass: "confirm-row"
                     }, [P("span", [x.reservedName ? [x._v("Reserved name "), P("b", [x._v(x._s(x.reservedName))])] : [x._v("Shows in chat, minimap, name and leaderboard. Name is exclusive.")]], 2), x._v(" "), P("button", {
                         staticClass: "confirm-button",
@@ -14685,27 +14834,11 @@
                     }, [x._v(" ")])], 1), x._v(" "), P("div", {
                         staticClass: "options"
                     }, [P("div", {
-                        staticClass: "perk-color-wrapper cell-color-row"
-                    }, [P("span", [x._v("Hex")]), x._v(" "), P("span", {
-                        staticClass: "perk-color-label"
-                    }, [x._v("Color")]), x._v(" "), P("input", {
-                        staticClass: "perk-name cell-hex",
-                        attrs: {
-                            type: "text",
-                            spellcheck: "false",
-                            maxlength: "7",
-                            placeholder: "#000000"
-                        },
-                        domProps: {
-                            value: "#" + x.cellHex
-                        },
-                        on: {
-                            input: function (P) {
-                                x.setCellHex(P.target.value)
-                            }
-                        }
-                    }), x._v(" "), P("span", {
-                        staticClass: "perk-color-option"
+                        staticClass: "dns-heading"
+                    }, [x._v("Choose Colour")]), x._v(" "), P("div", {
+                        staticClass: "dns-colors"
+                    }, [P("div", {
+                        staticClass: "dns-custom"
                     }, [P("color-option", {
                         attrs: {
                             Nm: x.cellHex
@@ -14713,17 +14846,30 @@
                         on: {
                             input: x.setCellHex
                         }
-                    })], 1), x._v(" "), P("button", {
-                        staticClass: "perk-color-update",
-                        attrs: {
-                            disabled: !x.canSetCell
-                        },
-                        on: {
-                            click: x.commitCell
-                        }
-                    }, [x._v("Set")])]), x._v(" "), P("div", {
+                    })], 1), x._v(" "), P("div", {
+                        staticClass: "dns-presets"
+                    }, x._l(["000000", "ffffff", "3d7eff", "e64a30", "2ecc71", "9b59b6", "f1c40f", "eb459e", "5865f2", "1abc9c", "e67e22", "95a5a6"], (function (h) {
+                        return P("button", {
+                            key: h,
+                            staticClass: "dns-swatch",
+                            class: {
+                                "is-on": x.cellHex === h
+                            },
+                            style: {
+                                backgroundColor: "#" + h
+                            },
+                            attrs: {
+                                type: "button"
+                            },
+                            on: {
+                                click: function () {
+                                    x.setCellHex(h)
+                                }
+                            }
+                        })
+                    })), 2)]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
-                    }, [x._v("Saved for your account. Other extension users see this color on your cells.")]), ])]), x._v(" "), P("div", {
+                    }, [x._v("Saved for your account. Other extension users see this color on your cells.")])])]), x._v(" "), P("div", {
                         staticClass: "section row border-section"
                     }, [P("div", {
                         staticClass: "header"
@@ -14742,27 +14888,11 @@
                     }, [x._v(" ")])], 1), x._v(" "), P("div", {
                         staticClass: "options"
                     }, [P("div", {
-                        staticClass: "border-line"
-                    }, [P("label", {
-                        staticClass: "border-hex"
-                    }, [P("span", [x._v("Hex")]), P("input", {
-                        staticClass: "perk-name cell-hex",
-                        attrs: {
-                            type: "text",
-                            spellcheck: "false",
-                            maxlength: "7",
-                            placeholder: "#ffffff"
-                        },
-                        domProps: {
-                            value: "#" + x.borderHex
-                        },
-                        on: {
-                            input: function (P) {
-                                x.setBorderHex(P.target.value)
-                            }
-                        }
-                    })]), x._v(" "), P("span", {
-                        staticClass: "perk-color-option"
+                        staticClass: "dns-heading"
+                    }, [x._v("Choose Colour")]), x._v(" "), P("div", {
+                        staticClass: "dns-colors"
+                    }, [P("div", {
+                        staticClass: "dns-custom"
                     }, [P("color-option", {
                         attrs: {
                             Nm: x.borderHex
@@ -14770,18 +14900,31 @@
                         on: {
                             input: x.setBorderHex
                         }
-                    })], 1), x._v(" "), P("button", {
-                        staticClass: "perk-color-update",
-                        attrs: {
-                            disabled: !x.canSetBorder
-                        },
-                        on: {
-                            click: x.commitBorder
-                        }
-                    }, [x._v("Set")]), x._v(" "), P("label", {
-                        staticClass: "aetlis-thick-inline"
-                    }, [P("input", {
-                        staticClass: "perk-name aetlis-thick-input",
+                    })], 1), x._v(" "), P("div", {
+                        staticClass: "dns-presets"
+                    }, x._l(["ffffff", "000000", "e64a30", "f1c40f", "2ecc71", "3498db", "9b59b6", "eb459e", "5865f2", "e67e22", "1abc9c", "95a5a6"], (function (h) {
+                        return P("button", {
+                            key: h,
+                            staticClass: "dns-swatch",
+                            class: {
+                                "is-on": x.borderHex === h
+                            },
+                            style: {
+                                backgroundColor: "#" + h
+                            },
+                            attrs: {
+                                type: "button"
+                            },
+                            on: {
+                                click: function () {
+                                    x.setBorderHex(h)
+                                }
+                            }
+                        })
+                    })), 2)]), x._v(" "), P("label", {
+                        staticClass: "dns-thick"
+                    }, [P("span", [x._v("Thickness")]), P("input", {
+                        staticClass: "dns-thick-input",
                         attrs: {
                             type: "number",
                             min: "2",
@@ -14799,7 +14942,7 @@
                                 x.setBorderSize(P.target.value, !0)
                             }
                         }
-                    }), P("span", [x._v("px")])])]), x._v(" "), P("div", {
+                    }), P("span", [x._v("px")])]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
                     }, [x._v("Shows around your cell only when skins are hidden, or when you have no skin.")])])]), x._v(" "), P("div", {
                         staticClass: "section row hats-section"
@@ -16897,7 +17040,7 @@
                     ref: "overlay",
                     staticClass: "color-picker-overlay"
                 }), x._v(" "), P("div", {
-                    staticClass: "color-picker fade-box",
+                    staticClass: "color-picker fade-box discord-picker",
                     style: {
                         top: x.Gp + "px",
                         left: x.Hp + "px"
@@ -16979,7 +17122,31 @@
                             }
                         ]
                     }
-                })]), x._v(" "), x.grad ? P("div", {
+                })]), x._v(" "), P("div", {
+                    staticClass: "dns-suggested"
+                }, x._l(["aaa89e", "1b1b18", "c583af", "838ec5", "83c599"], (function (h) {
+                    return P("button", {
+                        key: h,
+                        staticClass: "dns-suggested-swatch",
+                        style: {
+                            backgroundColor: "#" + h
+                        },
+                        attrs: {
+                            type: "button"
+                        },
+                        on: {
+                            mousedown: function (ev) {
+                                ev.preventDefault(),
+                                    ev.stopPropagation()
+                            },
+                            click: function (ev) {
+                                ev.preventDefault(),
+                                    ev.stopPropagation(),
+                                    x.pickSuggested(h)
+                            }
+                        }
+                    })
+                })), 2), x._v(" "), x.grad ? P("div", {
                     staticClass: "aetlis-picker-stops"
                 }, [P("button", {
                     staticClass: "aetlis-picker-grad",
@@ -17136,6 +17303,10 @@
                     },
                     gh() {
                         this.Lp = this.Mp,
+                            this.Np(1, !0)
+                    },
+                    pickSuggested(hex) {
+                        this.Lp = String(hex || "").replace(/^#/, "").toLowerCase(),
                             this.Np(1, !0)
                     },
                     Np(x, P) {

@@ -15179,11 +15179,12 @@ input[type=range].slider::-webkit-slider-thumb {
     flex-direction: unset !important;
     gap: 10px;
     grid-template-areas:
-        "name cell"
-        "badges border"
+        "name name"
+        "cell border"
+        "badges badges"
         "hats hats";
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: min-content min-content min-content;
+    grid-template-rows: min-content min-content min-content min-content;
     height: auto;
     max-height: 100%;
     min-height: 0 !important;
@@ -15755,4 +15756,349 @@ input[type=range].slider::-webkit-slider-thumb {
 .aetlis-range-val {
     flex: 0 0 18px;
     text-align: right;
+}
+
+/* Discord-style perk colour tiles, from the Retrovision name-style modal. */
+.mavor-content .ext-perks .dns-pick,
+.mavor-content .ext-perks .dns-colors,
+.mavor-content .ext-perks .dns-thick {
+    width: 100%;
+}
+
+.mavor-content .ext-perks .dns-heading {
+    color: #f2f3f5;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.25;
+    margin: 12px 0 8px;
+}
+
+.mavor-content .ext-perks .dns-name-line {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+}
+
+.mavor-content .ext-perks .dns-name {
+    background: #1e1f22;
+    border: none;
+    border-radius: 8px;
+    box-sizing: border-box;
+    color: #dbdee1;
+    flex: 1 1 auto;
+    font-size: 15px;
+    height: 40px;
+    min-width: 0;
+    padding: 0 12px;
+}
+
+.mavor-content .ext-perks .dns-name:focus {
+    outline: none;
+}
+
+.mavor-content .ext-perks .dns-set {
+    background: #5865f2;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    flex: 0 0 auto;
+    font-size: 14px;
+    font-weight: 600;
+    height: 40px;
+    padding: 0 16px;
+}
+
+.mavor-content .ext-perks .dns-set:disabled {
+    cursor: default;
+    opacity: 0.45;
+}
+
+.mavor-content .ext-perks .dns-set:not(:disabled):hover {
+    background: #4752c4;
+}
+
+.mavor-content .ext-perks .dns-effects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.mavor-content .ext-perks .dns-effect {
+    background: rgba(151, 151, 159, 0.08);
+    border: 0;
+    border-radius: 8px;
+    box-sizing: border-box;
+    cursor: pointer;
+    height: 58px;
+    min-width: 120px;
+    padding: 0 12px;
+    position: relative;
+}
+
+.mavor-content .ext-perks .dns-effect:hover {
+    background: rgba(151, 151, 159, 0.14);
+}
+
+.mavor-content .ext-perks .dns-effect.is-on::after {
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 2px #5865f2;
+    content: "";
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
+.mavor-content .ext-perks .dns-effect-label {
+    font-size: 16px;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+
+.mavor-content .ext-perks .dns-colors {
+    align-items: flex-start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.mavor-content .ext-perks .dns-custom {
+    flex: 0 0 52px;
+    height: 50px;
+    position: relative;
+    width: 52px;
+}
+
+.mavor-content .ext-perks .dns-custom .color-button {
+    border: none;
+    border-radius: 4px;
+    height: 50px;
+    width: 52px;
+}
+
+.mavor-content .ext-perks .dns-custom::after,
+.mavor-content .ext-perks .dns-stop::after {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='m13.96 5.46 4.58 4.58a1 1 0 0 0 1.42 0l1.38-1.38a2 2 0 0 0 0-2.82l-3.18-3.18a2 2 0 0 0-2.82 0l-1.38 1.38a1 1 0 0 0 0 1.42ZM2.11 20.16l.73-4.22a3 3 0 0 1 .83-1.61l7.87-7.87a1 1 0 0 1 1.42 0l4.58 4.58a1 1 0 0 1 0 1.42l-7.87 7.87a3 3 0 0 1-1.6.83l-4.23.73a1.5 1.5 0 0 1-1.73-1.73Z'/%3E%3C/svg%3E") center / 14px 14px no-repeat;
+    content: "";
+    height: 14px;
+    pointer-events: none;
+    position: absolute;
+    width: 14px;
+}
+
+.mavor-content .ext-perks .dns-custom::after {
+    right: 4px;
+    top: 4px;
+}
+
+.mavor-content .ext-perks .dns-grad-custom {
+    align-items: center;
+    border-radius: 4px;
+    box-sizing: border-box;
+    display: flex;
+    flex: 0 0 auto;
+    gap: 10px;
+    height: 50px;
+    justify-content: center;
+    min-width: 104px;
+    padding: 0 10px;
+}
+
+.mavor-content .ext-perks .dns-stop {
+    align-items: center;
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    flex: 0 0 34px;
+    height: 34px;
+    justify-content: center;
+    position: relative;
+    width: 34px;
+}
+
+.mavor-content .ext-perks .dns-stop .color-button {
+    border: none;
+    border-radius: 50%;
+    height: 32px;
+    width: 32px;
+}
+
+.mavor-content .ext-perks .dns-stop::after {
+    left: 10px;
+    top: 10px;
+}
+
+.mavor-content .ext-perks .dns-presets {
+    display: flex;
+    flex: 1 1 180px;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    min-width: 0;
+}
+
+.mavor-content .ext-perks .dns-swatch {
+    border: 0;
+    border-radius: 3px;
+    box-sizing: border-box;
+    cursor: pointer;
+    flex: 0 0 20px;
+    height: 20px;
+    padding: 0;
+    position: relative;
+    width: 20px;
+}
+
+.mavor-content .ext-perks .dns-swatch-grad {
+    flex-basis: 40px;
+    width: 40px;
+}
+
+.mavor-content .ext-perks .dns-swatch.is-on::after {
+    border-bottom: 2px solid #fff;
+    border-left: 2px solid #fff;
+    content: "";
+    height: 4px;
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -70%) rotate(-45deg);
+    width: 7px;
+}
+
+.mavor-content .ext-perks .dns-thick {
+    align-items: center;
+    color: #dbdee1;
+    display: flex;
+    font-size: 13px;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.mavor-content .ext-perks .dns-thick-input {
+    background: #1e1f22;
+    border: none;
+    border-radius: 8px;
+    color: #dbdee1;
+    height: 32px;
+    text-align: center;
+    width: 56px;
+}
+
+.mavor-content .ext-perks .hat-cell.selected {
+    box-shadow: inset 0 0 0 2px #5865f2;
+}
+
+/* Discord custom colour picker popout. */
+.discord-picker {
+    background: #2b2d31 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2), 0 8px 16px rgba(0, 0, 0, 0.35);
+    box-sizing: border-box;
+    color: #dbdee1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px !important;
+    width: 182px;
+}
+
+.discord-picker .color-picker-hue {
+    background: linear-gradient(90deg, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+    border-radius: 3px;
+    height: 8px;
+    margin: 0;
+    order: 2;
+    width: 150px;
+}
+
+.discord-picker .color-picker-hue::-webkit-slider-thumb {
+    background: #fff;
+    border: none;
+    border-radius: 3px;
+    box-shadow: rgba(0, 0, 0, 0.6) 0 0 2px;
+    height: 16px;
+    margin-top: -4px;
+    outline: none;
+    width: 8px;
+}
+
+.discord-picker .color-picker-clr {
+    border-radius: 3px;
+    height: 150px;
+    order: 1;
+    overflow: hidden;
+    width: 150px;
+}
+
+.discord-picker .color-picker-sat,
+.discord-picker .color-picker-val {
+    height: 150px;
+    width: 150px;
+}
+
+.discord-picker .color-picker-hex {
+    align-items: center;
+    background: #1e1f22;
+    border-radius: 8px;
+    box-sizing: border-box;
+    display: flex;
+    height: 40px;
+    justify-content: flex-start;
+    margin: 0;
+    order: 3;
+    overflow: hidden;
+    padding: 0 4px 0 10px;
+    width: 150px;
+}
+
+.discord-picker .color-picker-hashtag {
+    color: #949ba4;
+    flex: 0 0 auto;
+    text-align: left;
+}
+
+.discord-picker input.color-picker-hex {
+    background: transparent;
+    border: none;
+    color: #dbdee1;
+    flex: 1 1 auto;
+    float: none;
+    font-size: 16px;
+    height: 100%;
+    margin: 0;
+    text-transform: uppercase;
+    width: auto;
+}
+
+.discord-picker input.color-picker-hex:focus {
+    outline: none;
+}
+
+.discord-picker .color-picker-reset {
+    margin-right: 8px;
+}
+
+.dns-suggested {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    order: 4;
+}
+
+.dns-suggested-swatch {
+    background: transparent;
+    border: 1px solid hsl(222.857 5.833% 52.941%);
+    border-radius: 4px;
+    box-sizing: content-box;
+    cursor: pointer;
+    height: 32px;
+    padding: 0;
+    width: 32px;
+}
+
+.discord-picker .aetlis-picker-stops {
+    order: 5;
 }
