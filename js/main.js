@@ -14293,8 +14293,10 @@
                             /^[0-9a-fA-F]{6}$/.test(x) && (this.borderHex = x.toLowerCase())
                     },
                     setBorderSize(x, publish) {
-                        var n = parseInt(x, 10);
+                        var n = parseInt(String(x == null ? "" : x).replace(/px/ig, ""), 10);
                         if (!isFinite(n))
+                            return;
+                        if (!publish && (n < 2 || n > 24))
                             return;
                         this.borderSize = Math.max(2, Math.min(24, n));
                         if (!this.borderOn)
@@ -14625,8 +14627,10 @@
                         staticClass: "section row cell-color-section"
                     }, [P("div", {
                         staticClass: "header"
-                    }, [P("p-check", {
-                        staticClass: "p-switch",
+                    }, [P("span", {
+                        staticClass: "perk-head-title"
+                    }, [x._v("Cell color")]), P("p-check", {
+                        staticClass: "p-switch perk-head-switch",
                         attrs: {
                             checked: x.cellOn
                         },
@@ -14635,7 +14639,7 @@
                                 x.toggleCell(v)
                             }
                         }
-                    }), x._v(" Cell color")], 1), x._v(" "), P("div", {
+                    }, [x._v(" ")])], 1), x._v(" "), P("div", {
                         staticClass: "options"
                     }, [P("div", {
                         staticClass: "perk-color-wrapper cell-color-row"
@@ -14680,8 +14684,10 @@
                         staticClass: "section row gradient-section"
                     }, [P("div", {
                         staticClass: "header"
-                    }, [P("p-check", {
-                        staticClass: "p-switch",
+                    }, [P("span", {
+                        staticClass: "perk-head-title"
+                    }, [x._v("Gradient")]), P("p-check", {
+                        staticClass: "p-switch perk-head-switch",
                         attrs: {
                             checked: x.gradOn
                         },
@@ -14690,8 +14696,10 @@
                                 x.toggleGrad(v)
                             }
                         }
-                    }), x._v(" Gradient")], 1), x._v(" "), x.gradOn ? P("div", {
+                    }, [x._v(" ")])], 1), x._v(" "), x.gradOn ? P("div", {
                         staticClass: "options"
+                    }, [P("div", {
+                        staticClass: "aetlis-grad-line"
                     }, [P("div", {
                         staticClass: "aetlis-grad-preview aetlis-grad",
                         style: x.gradPreview
@@ -14726,10 +14734,8 @@
                         on: {
                             click: x.addGradStop
                         }
-                    }, [x._v("+")])])), x._v(" "), P("div", {
-                        staticClass: "perk-color-wrapper cell-color-row"
-                    }, [P("span", [x._v("Hex")]), x._v(" "), P("input", {
-                        staticClass: "perk-name cell-hex",
+                    }, [x._v("+")])])), x._v(" "), P("input", {
+                        staticClass: "perk-name aetlis-grad-hex",
                         attrs: {
                             type: "text",
                             spellcheck: "false",
@@ -14744,7 +14750,7 @@
                             }
                         }
                     }), x._v(" "), P("span", {
-                        staticClass: "perk-color-option"
+                        staticClass: "perk-color-option aetlis-grad-swatch"
                     }, [P("color-option", {
                         attrs: {
                             Nm: x.grads[x.gradPick] || x.hex
@@ -14765,8 +14771,10 @@
                         staticClass: "section row border-section"
                     }, [P("div", {
                         staticClass: "header"
-                    }, [P("p-check", {
-                        staticClass: "p-switch",
+                    }, [P("span", {
+                        staticClass: "perk-head-title"
+                    }, [x._v("Border")]), P("p-check", {
+                        staticClass: "p-switch perk-head-switch",
                         attrs: {
                             checked: x.borderOn
                         },
@@ -14775,7 +14783,7 @@
                                 x.toggleBorder(v)
                             }
                         }
-                    }), x._v(" Border")], 1), x._v(" "), P("div", {
+                    }, [x._v(" ")])], 1), x._v(" "), P("div", {
                         staticClass: "options"
                     }, [P("div", {
                         staticClass: "perk-color-wrapper cell-color-row"
@@ -14816,15 +14824,14 @@
                         }
                     }, [x._v("Set")])]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
-                    }, [x._v("Shows around your cell only when skins are hidden, or when you have no skin.")]), x._v(" "), P("div", {
-                        staticClass: "inline-range",
-                        class: {
-                            off: !x.borderOn
-                        }
-                    }, [P("input", {
-                        staticClass: "slider",
+                    }, [x._v("Shows around your cell only when skins are hidden, or when you have no skin.")]), x._v(" "), P("label", {
+                        staticClass: "aetlis-thick"
+                    }, [P("span", {
+                        staticClass: "aetlis-thick-label"
+                    }, [x._v("Thickness")]), P("input", {
+                        staticClass: "perk-name aetlis-thick-input",
                         attrs: {
-                            type: "range",
+                            type: "number",
                             min: "2",
                             max: "24",
                             step: "1"
@@ -14840,9 +14847,7 @@
                                 x.setBorderSize(P.target.value, !0)
                             }
                         }
-                    }), P("span", {
-                        staticClass: "right"
-                    }, [x._v(x._s(x.borderSize))])])])]), x._v(" "), P("div", {
+                    }), P("span", [x._v("px")])])])]), x._v(" "), P("div", {
                         staticClass: "section row hats-section"
                     }, [P("div", {
                         staticClass: "header"
