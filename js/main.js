@@ -2521,7 +2521,8 @@
                             pen.arc(S / 2, S / 2, S / 2 - thick / 2 - 1, 0, Math.PI * 2);
                             pen.stroke();
                             var tex = PIXI.Texture.from(cvs);
-                            tex.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR;
+                            if (PIXI.SCALE_MODES)
+                                tex.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR;
                             this._aetBorderSprite = new PIXI.Sprite(tex);
                             this._aetBorderSprite.width = D;
                             this._aetBorderSprite.height = D;
