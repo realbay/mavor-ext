@@ -15153,19 +15153,17 @@ input[type=range].slider::-webkit-slider-thumb {
 /* Name color and cell color share the top row. Badges and hats span the full width under them. */
 .mavor-content .ext-perks.perk-split {
     align-content: start;
-    align-items: start;
+    align-items: stretch;
     display: grid !important;
     flex: 1 1 auto !important;
     flex-direction: unset !important;
     gap: 10px;
     grid-template-areas:
         "name cell"
-        "gradient gradient"
-        "border border"
-        "badges badges"
+        "badges border"
         "hats hats";
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: min-content min-content min-content min-content min-content;
+    grid-template-rows: min-content min-content min-content;
     height: auto;
     max-height: 100%;
     min-height: 0 !important;
@@ -15188,8 +15186,8 @@ input[type=range].slider::-webkit-slider-thumb {
     margin-bottom: 0 !important;
 }
 
-.mavor-content .ext-perks .gradient-section {
-    grid-area: gradient;
+.mavor-content .ext-perks .badges-section {
+    grid-area: badges;
     margin-bottom: 0 !important;
 }
 
@@ -15198,9 +15196,32 @@ input[type=range].slider::-webkit-slider-thumb {
     margin-bottom: 0 !important;
 }
 
-.mavor-content .ext-perks .badges-section {
-    grid-area: badges;
-    margin-bottom: 0 !important;
+.ext-perks .border-color-row {
+    grid-template-columns: minmax(0, 1fr) 32px 44px 58px;
+}
+
+.ext-perks .border-color-row .perk-color-update {
+    width: 44px;
+}
+
+.ext-perks .border-color-row .aetlis-thick-inline {
+    align-items: center;
+    display: flex;
+    gap: 3px;
+    grid-column: 4;
+    grid-row: 2;
+    min-width: 0;
+}
+
+.ext-perks .border-color-row .aetlis-thick-input,
+.mavor-content .ext-perks .border-color-row .aetlis-thick-input {
+    flex: 1 1 auto;
+    grid-column: auto;
+    grid-row: auto;
+    min-width: 0;
+    padding: 4px 2px;
+    text-align: center;
+    width: 34px;
 }
 
 .mavor-content .ext-perks .hats-section,
@@ -15570,6 +15591,58 @@ input[type=range].slider::-webkit-slider-thumb {
 .mavor-content .ext-perks .aetlis-grad-swatch {
     grid-column: auto;
     grid-row: auto;
+}
+
+.aetlis-picker-stops {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+    width: 150px;
+}
+
+.aetlis-picker-grad {
+    background: conic-gradient(#f04747, #faa61a, #43b581, #00b0f4, #7289da, #f04747);
+    border: 1px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 1px 1px #000;
+    cursor: pointer;
+    flex: 0 0 auto;
+    height: 18px;
+    padding: 0;
+    width: 18px;
+}
+
+.aetlis-picker-grad:disabled {
+    cursor: default;
+    opacity: .35;
+}
+
+.aetlis-picker-stop {
+    border: 1px solid #111;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .35);
+    cursor: pointer;
+    flex: 0 0 auto;
+    height: 16px;
+    padding: 0;
+    width: 16px;
+}
+
+.aetlis-picker-stop.on {
+    box-shadow: 0 0 0 2px #fff;
+}
+
+.aetlis-picker-x {
+    background: transparent;
+    border: 0;
+    color: #dadada;
+    cursor: pointer;
+    flex: 0 0 auto;
+    font-size: 14px;
+    line-height: 16px;
+    padding: 0;
 }
 
 .aetlis-thick {

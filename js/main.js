@@ -13322,6 +13322,14 @@
                     Ki: {
                         type: Boolean,
                         default: !1
+                    },
+                    aetGrad: {
+                        type: Boolean,
+                        default: !1
+                    },
+                    gradStops: {
+                        type: Array,
+                        default: null
                     }
                 },
                 methods: {
@@ -13330,12 +13338,17 @@
                             Ha: x.clientX,
                             Ia: x.clientY,
                             Nm: this.Nm,
-                            Hn: this.Hn
+                            Hn: this.Hn,
+                            grad: !!this.aetGrad,
+                            stops: this.aetGrad && this.gradStops ? this.gradStops.slice() : null
                         }),
                             this.Qn = !0)
                     },
                     Sn(x) {
                         this.Qn && this.$emit("input", x)
+                    },
+                    onStops(x) {
+                        this.Qn && this.$emit("stops", x)
                     },
                     Tn() {
                         this.Qn = !1
@@ -13343,11 +13356,13 @@
                 },
                 created() {
                     Na.R.$on(Oa.Un, this.Sn),
-                        Na.R.$on(Oa.Vn, this.Tn)
+                        Na.R.$on(Oa.Vn, this.Tn),
+                        Na.R.$on("aetlis-picker-stops", this.onStops)
                 },
                 destroyed() {
                     Na.R.$off(Oa.Un, this.Sn),
-                        Na.R.$off(Oa.Vn, this.Tn)
+                        Na.R.$off(Oa.Vn, this.Tn),
+                        Na.R.$off("aetlis-picker-stops", this.onStops)
                 }
             }
                 , Ea = (0,
@@ -14216,8 +14231,27 @@
                         ))
                     },
                     setHex(x) {
-                        x = String(x || "").replace(/^#/, ""),
-                            /^[0-9a-fA-F]{6}$/.test(x) && (this.hex = x.toLowerCase())
+                        x = String(x || "").replace(/^#/, "");
+                        if (!/^[0-9a-fA-F]{6}$/.test(x))
+                            return;
+                        this.hex = x.toLowerCase();
+                        this.grads && this.grads.length && this.grads.splice(0, 1, this.hex)
+                    },
+                    setGradStops(arr) {
+                        if (!Array.isArray(arr))
+                            return;
+                        var clean = [];
+                        for (var i = 0; i < arr.length && clean.length < 5; i++) {
+                            var h = String(arr[i] || "").replace(/^#/, "").toLowerCase();
+                            /^[0-9a-f]{6}$/.test(h) && clean.push(h)
+                        }
+                        if (!clean.length)
+                            return;
+                        this.grads = clean;
+                        this.hex = clean[0];
+                        this.gradOn = clean.length > 1;
+                        if (this.gradPick >= clean.length)
+                            this.gradPick = clean.length - 1
                     },
                     toggleGrad(v) {
                         this.gradOn = "boolean" == typeof v ? v : !this.gradOn
@@ -14576,10 +14610,13 @@
                         staticClass: "perk-color-option"
                     }, [P("color-option", {
                         attrs: {
-                            Nm: x.hex
+                            Nm: x.hex,
+                            aetGrad: !0,
+                            gradStops: x.gradOn && x.grads.length > 1 ? x.grads : [x.hex]
                         },
                         on: {
-                            input: x.setHex
+                            input: x.setHex,
+                            stops: x.setGradStops
                         }
                     })], 1), x._v(" "), P("button", {
                         staticClass: "perk-color-update",
@@ -14681,93 +14718,6 @@
                     }, [x._v("Set")])]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
                     }, [x._v("Saved for your account. Other extension users see this color on your cells.")]), ])]), x._v(" "), P("div", {
-                        staticClass: "section row gradient-section"
-                    }, [P("div", {
-                        staticClass: "header"
-                    }, [P("span", {
-                        staticClass: "perk-head-title"
-                    }, [x._v("Gradient")]), P("p-check", {
-                        staticClass: "p-switch perk-head-switch",
-                        attrs: {
-                            checked: x.gradOn
-                        },
-                        on: {
-                            change: function (v) {
-                                x.toggleGrad(v)
-                            }
-                        }
-                    }, [x._v(" ")])], 1), x._v(" "), x.gradOn ? P("div", {
-                        staticClass: "options"
-                    }, [P("div", {
-                        staticClass: "aetlis-grad-line"
-                    }, [P("div", {
-                        staticClass: "aetlis-grad-preview aetlis-grad",
-                        style: x.gradPreview
-                    }, [x._v(x._s((x.name || x.reservedName || "Name").slice(0, 15)))]), x._v(" "), P("div", {
-                        staticClass: "aetlis-stops"
-                    }, x._l(x.grads, (function (h, i) {
-                        return P("button", {
-                            key: i,
-                            staticClass: "aetlis-stop",
-                            class: {
-                                on: x.gradPick === i
-                            },
-                            style: {
-                                backgroundColor: "#" + h
-                            },
-                            attrs: {
-                                type: "button"
-                            },
-                            on: {
-                                click: function () {
-                                    return x.pickGrad(i)
-                                }
-                            }
-                        })
-                    }
-                    )).concat([P("button", {
-                        staticClass: "aetlis-stop-add",
-                        attrs: {
-                            type: "button",
-                            disabled: x.grads.length >= 5
-                        },
-                        on: {
-                            click: x.addGradStop
-                        }
-                    }, [x._v("+")])])), x._v(" "), P("input", {
-                        staticClass: "perk-name aetlis-grad-hex",
-                        attrs: {
-                            type: "text",
-                            spellcheck: "false",
-                            maxlength: "7"
-                        },
-                        domProps: {
-                            value: "#" + (x.grads[x.gradPick] || x.hex)
-                        },
-                        on: {
-                            input: function (ev) {
-                                x.setGradHex(ev.target.value)
-                            }
-                        }
-                    }), x._v(" "), P("span", {
-                        staticClass: "perk-color-option aetlis-grad-swatch"
-                    }, [P("color-option", {
-                        attrs: {
-                            Nm: x.grads[x.gradPick] || x.hex
-                        },
-                        on: {
-                            input: x.setGradHex
-                        }
-                    })], 1), x._v(" "), P("button", {
-                        staticClass: "perk-color-update",
-                        attrs: {
-                            type: "button",
-                            disabled: x.grads.length <= 2
-                        },
-                        on: {
-                            click: x.removeGradStop
-                        }
-                    }, [x._v("Remove")])])]) : x._e()]), x._v(" "), P("div", {
                         staticClass: "section row border-section"
                     }, [P("div", {
                         staticClass: "header"
@@ -14786,7 +14736,7 @@
                     }, [x._v(" ")])], 1), x._v(" "), P("div", {
                         staticClass: "options"
                     }, [P("div", {
-                        staticClass: "perk-color-wrapper cell-color-row"
+                        staticClass: "perk-color-wrapper cell-color-row border-color-row"
                     }, [P("span", [x._v("Hex")]), x._v(" "), P("span", {
                         staticClass: "perk-color-label"
                     }, [x._v("Border")]), x._v(" "), P("input", {
@@ -14822,13 +14772,9 @@
                         on: {
                             click: x.commitBorder
                         }
-                    }, [x._v("Set")])]), x._v(" "), P("div", {
-                        staticClass: "name-color-tip"
-                    }, [x._v("Shows around your cell only when skins are hidden, or when you have no skin.")]), x._v(" "), P("label", {
-                        staticClass: "aetlis-thick"
-                    }, [P("span", {
-                        staticClass: "aetlis-thick-label"
-                    }, [x._v("Thickness")]), P("input", {
+                    }, [x._v("Set")]), x._v(" "), P("span", {
+                        staticClass: "aetlis-thick-inline"
+                    }, [P("input", {
                         staticClass: "perk-name aetlis-thick-input",
                         attrs: {
                             type: "number",
@@ -14847,7 +14793,9 @@
                                 x.setBorderSize(P.target.value, !0)
                             }
                         }
-                    }), P("span", [x._v("px")])])])]), x._v(" "), P("div", {
+                    }), P("span", [x._v("px")])])]), x._v(" "), P("div", {
+                        staticClass: "name-color-tip"
+                    }, [x._v("Shows around your cell only when skins are hidden, or when you have no skin.")])])]), x._v(" "), P("div", {
                         staticClass: "section row hats-section"
                     }, [P("div", {
                         staticClass: "header"
@@ -17023,7 +16971,69 @@
                             }
                         ]
                     }
-                })])])]) : x._e()
+                })]), x._v(" "), x.grad ? P("div", {
+                    staticClass: "aetlis-picker-stops"
+                }, [P("button", {
+                    staticClass: "aetlis-picker-grad",
+                    attrs: {
+                        type: "button",
+                        title: "Add gradient color",
+                        disabled: x.stops && x.stops.length >= 5
+                    },
+                    on: {
+                        mousedown: function (ev) {
+                            ev.preventDefault(),
+                                ev.stopPropagation()
+                        },
+                        click: function (ev) {
+                            ev.preventDefault(),
+                                ev.stopPropagation(),
+                                x.addGradStop()
+                        }
+                    }
+                }), x._v(" "), x.stops && x.stops.length > 1 ? x._l(x.stops, (function (h, i) {
+                    return P("button", {
+                        key: i,
+                        staticClass: "aetlis-picker-stop",
+                        class: {
+                            on: x.stopAt === i
+                        },
+                        style: {
+                            backgroundColor: "#" + h
+                        },
+                        attrs: {
+                            type: "button"
+                        },
+                        on: {
+                            mousedown: function (ev) {
+                                ev.preventDefault(),
+                                    ev.stopPropagation()
+                            },
+                            click: function (ev) {
+                                ev.preventDefault(),
+                                    ev.stopPropagation(),
+                                    x.pickPickerStop(i)
+                            }
+                        }
+                    })
+                })) : x._e(), x._v(" "), x.stops && x.stops.length > 1 ? P("button", {
+                    staticClass: "aetlis-picker-x",
+                    attrs: {
+                        type: "button",
+                        title: "Remove selected color"
+                    },
+                    on: {
+                        mousedown: function (ev) {
+                            ev.preventDefault(),
+                                ev.stopPropagation()
+                        },
+                        click: function (ev) {
+                            ev.preventDefault(),
+                                ev.stopPropagation(),
+                                x.removePickerStop()
+                        }
+                    }
+                }, [x._v("×")]) : x._e()]) : x._e()])]) : x._e()
             };
             ta._withStripped = !0;
             var Js = j(1620)
@@ -17036,16 +17046,57 @@
                     Kp: !1,
                     Mp: null,
                     Lp: null,
-                    Ip: [0, 0, 0]
+                    Ip: [0, 0, 0],
+                    grad: !1,
+                    stops: null,
+                    stopAt: 0
                 }),
                 methods: {
                     Pn(x) {
-                        this.pf = null != x,
-                            null != x ? (this.Hp = x.Ha,
-                                this.Gp = x.Ia,
-                                this.Mp = x.Hn,
-                                this.Lp = x.Nm,
-                                this.Np(1, !1)) : Js.R.$emit(Ws.Vn)
+                        if (this.pf = null != x,
+                            null == x)
+                            return void Js.R.$emit(Ws.Vn);
+                        this.Hp = x.Ha,
+                            this.Gp = x.Ia,
+                            this.Mp = x.Hn,
+                            this.grad = !!x.grad;
+                        var stops = this.grad && Array.isArray(x.stops) ? x.stops.map(function (h) {
+                            return String(h || "").replace(/^#/, "").toLowerCase()
+                        }).filter(function (h) {
+                            return /^[0-9a-f]{6}$/.test(h)
+                        }).slice(0, 5) : null;
+                        this.stops = this.grad ? stops && stops.length ? stops : [String(x.Nm || "ffffff").replace(/^#/, "")] : null,
+                            this.stopAt = 0,
+                            this.Lp = this.stops ? this.stops[0] : x.Nm,
+                            this.Np(1, !1)
+                    },
+                    addGradStop() {
+                        if (!this.grad)
+                            return;
+                        this.stops && this.stops.length || (this.stops = [this.Lp || "ffffff"]);
+                        if (this.stops.length >= 5)
+                            return;
+                        var last = this.stops[this.stops.length - 1]
+                            , next = "eb459e" === last ? "fee75c" : "5865f2" === last ? "eb459e" : "5865f2";
+                        this.stops.push(next),
+                            this.stopAt = this.stops.length - 1,
+                            this.Lp = next,
+                            this.Np(1, !0)
+                    },
+                    pickPickerStop(i) {
+                        if (!this.stops || i < 0 || i >= this.stops.length)
+                            return;
+                        this.stopAt = i,
+                            this.Lp = this.stops[i],
+                            this.Np(1, !1)
+                    },
+                    removePickerStop() {
+                        if (!this.stops || this.stops.length <= 1)
+                            return;
+                        this.stops.splice(this.stopAt, 1),
+                            this.stopAt >= this.stops.length && (this.stopAt = this.stops.length - 1),
+                            this.Lp = this.stops[this.stopAt],
+                            this.Np(1, !0)
                     },
                     Jp(x, P) {
                         this.Ip[0] = x.target.valueAsNumber,
@@ -17131,7 +17182,12 @@
                                 return (M = Math.ceil(255 * M).toString(16).padStart(2, "0")) + ($ = Math.ceil(255 * $).toString(16).padStart(2, "0")) + Math.ceil(255 * O).toString(16).padStart(2, "0")
                             }(...this.Ip));
                         var j, M, $, O, L, H, D;
-                        P && Js.R.$emit(Ws.Un, this.Lp)
+                        if (this.grad && this.stops && this.stops.length) {
+                            (this.stopAt < 0 || this.stopAt >= this.stops.length) && (this.stopAt = 0);
+                            this.stops.splice(this.stopAt, 1, this.Lp);
+                            P && Js.R.$emit("aetlis-picker-stops", this.stops.slice())
+                        }
+                        P && (!this.grad || 0 === this.stopAt) && Js.R.$emit(Ws.Un, this.Lp)
                     }
                 },
                 created() {
