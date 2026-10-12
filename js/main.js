@@ -14125,6 +14125,7 @@
                         grads: (window.__aetlisReadStops(localStorage.aetlisNameGradient) || [hex, "5865f2"]).slice(),
                         savedGrads: (window.__aetlisReadStops(localStorage.aetlisNameGradient) || [hex, "5865f2"]).join(","),
                         gradPick: 0,
+                        styleOpen: "",
                         name: name,
                         savedName: name,
                         badge: window.__aetlisBadgeBit() || 0,
@@ -14133,8 +14134,7 @@
                         hatUrl: selectedHat,
                         hatDraft: "",
                         hatModalId: null,
-                        hatAddOpen: !1,
-                        colorModal: ""
+                        hatAddOpen: !1
                     }
                 },
                 computed: {
@@ -14257,32 +14257,6 @@
                     toggleGrad(v) {
                         this.gradOn = "boolean" == typeof v ? v : !this.gradOn
                     },
-                    pickEffect(on) {
-                        if (on) {
-                            this.gradOn = !0;
-                            if (!this.grads || this.grads.length < 2)
-                                this.grads = [this.hex, "5865f2"];
-                            else
-                                this.grads.splice(0, 1, this.hex)
-                        } else {
-                            this.gradOn = !1;
-                            this.grads && this.grads[0] && (this.hex = this.grads[0])
-                        }
-                    },
-                    pickSolid(hex) {
-                        this.gradOn = !1;
-                        this.setHex(hex)
-                    },
-                    pickGradPair(a, b) {
-                        this.setGradStops([a, b])
-                    },
-                    setStop(i, hex) {
-                        hex = String(hex || "").replace(/^#/, "").toLowerCase();
-                        if (!/^[0-9a-f]{6}$/.test(hex) || !this.grads || i < 0 || i >= this.grads.length)
-                            return;
-                        this.grads.splice(i, 1, hex);
-                        0 === i && (this.hex = hex)
-                    },
                     pickGrad(i) {
                         this.gradPick = i
                     },
@@ -14304,7 +14278,36 @@
                             return;
                         this.grads.splice(this.gradPick, 1);
                         if (this.gradPick >= this.grads.length)
-                            this.gradPick = this.grads.length - 1
+                            this.gradPick = this.grads.length - 1;
+                        if (this.grads[0])
+                            this.hex = this.grads[0]
+                    },
+                    chooseSolid() {
+                        this.gradOn = !1
+                    },
+                    chooseGradient() {
+                        this.gradOn = !0;
+                        if (!this.grads || this.grads.length < 2)
+                            this.grads = [this.hex || "ffffff", "5865f2"]
+                    },
+                    applySolidPreset(hex) {
+                        this.gradOn = !1;
+                        this.setHex(hex)
+                    },
+                    applyGradPreset(a, b) {
+                        this.gradOn = !0;
+                        this.grads = [a, b];
+                        this.hex = a;
+                        this.gradPick = 0
+                    },
+                    colorChip(kind) {
+                        if (kind === "cell")
+                            return { backgroundColor: "#" + this.cellHex };
+                        if (kind === "border")
+                            return { backgroundColor: "#" + this.borderHex };
+                        if (this.gradOn && this.grads.length > 1)
+                            return { backgroundImage: "linear-gradient(90deg," + this.grads.map(function (h) { return "#" + h }).join(",") + ")" };
+                        return { backgroundColor: "#" + this.hex }
                     },
                     toggleCell(v) {
                         v = "boolean" == typeof v ? v : !this.cellOn;
@@ -14333,16 +14336,8 @@
                         window.__aetlisPublishPerks && window.__aetlisPublishPerks()
                     },
                     setCellHex(x) {
-                        x = String(x || "").replace(/^#/, "");
-                        if (!/^[0-9a-fA-F]{6}$/.test(x))
-                            return;
-                        this.cellHex = x.toLowerCase();
-                        if (!this.cellOn)
-                            return;
-                        this.savedCellHex = this.cellHex;
-                        localStorage.aetlisCellColor = this.cellHex;
-                        window.__aetlisApplyCellColors && window.__aetlisApplyCellColors();
-                        window.__aetlisPublishPerks && window.__aetlisPublishPerks()
+                        x = String(x || "").replace(/^#/, ""),
+                            /^[0-9a-fA-F]{6}$/.test(x) && (this.cellHex = x.toLowerCase())
                     },
                     commitCell() {
                         var self = this;
@@ -14358,16 +14353,8 @@
                         })
                     },
                     setBorderHex(x) {
-                        x = String(x || "").replace(/^#/, "");
-                        if (!/^[0-9a-fA-F]{6}$/.test(x))
-                            return;
-                        this.borderHex = x.toLowerCase();
-                        if (!this.borderOn)
-                            return;
-                        this.savedBorderHex = this.borderHex;
-                        localStorage.aetlisCellBorder = this.borderHex;
-                        window.__aetlisApplyCellColors && window.__aetlisApplyCellColors();
-                        window.__aetlisPublishPerks && window.__aetlisPublishPerks()
+                        x = String(x || "").replace(/^#/, ""),
+                            /^[0-9a-fA-F]{6}$/.test(x) && (this.borderHex = x.toLowerCase())
                     },
                     setBorderSize(x, publish) {
                         var n = parseInt(String(x == null ? "" : x).replace(/px/ig, ""), 10);
@@ -14611,18 +14598,214 @@
                     this.$nextTick(function () { this.paintHats() }.bind(this))
                 }
             }
+                , AET_SOLID_PRESETS = ["18daad", "24e36d", "1c98eb", "c32aff", "fc1965", "c6a615", "0a9d7b", "0fad4b", "0b69a7", "a913e5", "da0149", "f93722"]
+                , AET_GRAD_PRESETS = [["2aaea6", "ffc490"], ["26b164", "90eaff"], ["e45eff", "267de0"], ["903cda", "2cda8e"], ["efb4aa", "e46ce2"], ["df4232", "bd8fff"], ["f5983c", "e55ae7"], ["e4541e", "65d7e4"]]
+                , aetStyleModal = function (x, P) {
+                    if (!x.styleOpen)
+                        return x._e();
+                    var nameMode = "name" === x.styleOpen
+                        , current = "cell" === x.styleOpen ? x.cellHex : "border" === x.styleOpen ? x.borderHex : x.hex
+                        , setPlain = function (hex) {
+                            "cell" === x.styleOpen ? x.setCellHex(hex) : "border" === x.styleOpen ? x.setBorderHex(hex) : x.setHex(hex)
+                        };
+                    return P("div", {
+                        staticClass: "aet-style-modal",
+                        on: {
+                            click: function () {
+                                x.styleOpen = ""
+                            }
+                        }
+                    }, [P("div", {
+                        staticClass: "aet-style-panel",
+                        on: {
+                            click: function (ev) {
+                                ev.stopPropagation()
+                            }
+                        }
+                    }, [P("div", {
+                        staticClass: "aet-style-head"
+                    }, [P("span", [x._v(nameMode ? "Name color" : "cell" === x.styleOpen ? "Cell color" : "Border")]), P("button", {
+                        staticClass: "aet-style-close",
+                        attrs: {
+                            type: "button"
+                        },
+                        on: {
+                            click: function () {
+                                x.styleOpen = ""
+                            }
+                        }
+                    }, [x._v("×")])]), P("div", {
+                        staticClass: "aet-preview",
+                        class: {
+                            "aetlis-grad": nameMode && x.gradOn && x.grads.length > 1
+                        },
+                        style: nameMode ? x.gradPreview : {
+                            color: "#" + current
+                        }
+                    }, [x._v(nameMode ? x.name || "Name" : "#" + current)]), nameMode ? P("div", {
+                        staticClass: "aet-style-block"
+                    }, [P("div", {
+                        staticClass: "aet-style-label"
+                    }, [x._v("Choose effect")]), P("div", {
+                        staticClass: "aet-effects"
+                    }, [P("button", {
+                        staticClass: "aet-effect",
+                        class: {
+                            on: !x.gradOn
+                        },
+                        attrs: {
+                            type: "button"
+                        },
+                        on: {
+                            click: x.chooseSolid
+                        }
+                    }, [P("span", {
+                        staticClass: "aet-effect-sample",
+                        style: {
+                            color: "#" + x.hex
+                        }
+                    }, [x._v("Solid")])]), P("button", {
+                        staticClass: "aet-effect",
+                        class: {
+                            on: x.gradOn
+                        },
+                        attrs: {
+                            type: "button"
+                        },
+                        on: {
+                            click: x.chooseGradient
+                        }
+                    }, [P("span", {
+                        staticClass: "aet-effect-sample aetlis-grad",
+                        style: x.grads.length > 1 ? {
+                            "--aetlis-fill": "linear-gradient(90deg," + x.grads.map(function (h) {
+                                return "#" + h
+                            }).join(",") + ")"
+                        } : {
+                            "--aetlis-fill": "linear-gradient(90deg,#eb459e,#fee75c)"
+                        }
+                    }, [x._v("Gradient")])])])]) : x._e(), P("div", {
+                        staticClass: "aet-style-block"
+                    }, [P("div", {
+                        staticClass: "aet-style-label"
+                    }, [x._v("Choose colour")]), nameMode && x.gradOn ? [P("div", {
+                        staticClass: "aet-grad-box",
+                        style: x.gradBar
+                    }, [P("div", {
+                        staticClass: "aet-stops"
+                    }, x._l(x.grads, function (hex, i) {
+                        return P("div", {
+                            key: "stop" + i,
+                            staticClass: "aet-stop",
+                            class: {
+                                on: x.gradPick === i
+                            }
+                        }, [P("color-option", {
+                            attrs: {
+                                Nm: hex
+                            },
+                            on: {
+                                input: function (v) {
+                                    var h = String(v || "").replace(/^#/, "").toLowerCase();
+                                    x.gradPick = i;
+                                    x.setGradHex(h);
+                                    0 === i && /^[0-9a-f]{6}$/.test(h) && (x.hex = h)
+                                }
+                            }
+                        }), P("span", {
+                            staticClass: "aet-dropper"
+                        }), x.grads.length > 2 ? P("button", {
+                            staticClass: "aet-stop-x",
+                            attrs: {
+                                type: "button"
+                            },
+                            on: {
+                                click: function (ev) {
+                                    ev.stopPropagation();
+                                    x.gradPick = i;
+                                    x.removeGradStop()
+                                }
+                            }
+                        }, [x._v("×")]) : x._e()], 1)
+                    })), x.grads.length < 5 ? P("button", {
+                        staticClass: "aet-stop-add",
+                        attrs: {
+                            type: "button"
+                        },
+                        on: {
+                            click: function () {
+                                x.gradOn = !0;
+                                x.addGradStop()
+                            }
+                        }
+                    }, [x._v("+")]) : x._e()]), P("div", {
+                        staticClass: "aet-swatches"
+                    }, x._l(AET_GRAD_PRESETS, function (pair) {
+                        var on = x.gradOn && 2 === x.grads.length && x.grads[0] === pair[0] && x.grads[1] === pair[1];
+                        return P("button", {
+                            key: pair.join("-"),
+                            staticClass: "aet-swatch aet-swatch-grad",
+                            class: {
+                                on: on
+                            },
+                            style: {
+                                backgroundImage: "linear-gradient(90deg,#" + pair[0] + ",#" + pair[1] + ")"
+                            },
+                            attrs: {
+                                type: "button"
+                            },
+                            on: {
+                                click: function () {
+                                    x.applyGradPreset(pair[0], pair[1])
+                                }
+                            }
+                        })
+                    }))] : [P("div", {
+                        staticClass: "aet-color-row"
+                    }, [P("div", {
+                        staticClass: "aet-custom"
+                    }, [P("color-option", {
+                        attrs: {
+                            Nm: current
+                        },
+                        on: {
+                            input: setPlain
+                        }
+                    }), P("span", {
+                        staticClass: "aet-dropper"
+                    })], 1), P("div", {
+                        staticClass: "aet-swatches"
+                    }, x._l(AET_SOLID_PRESETS, function (hex) {
+                        var on = nameMode ? !x.gradOn && x.hex === hex : current === hex;
+                        return P("button", {
+                            key: hex,
+                            staticClass: "aet-swatch",
+                            class: {
+                                on: on
+                            },
+                            style: {
+                                background: "#" + hex
+                            },
+                            attrs: {
+                                type: "button"
+                            },
+                            on: {
+                                click: function () {
+                                    nameMode ? x.applySolidPreset(hex) : setPlain(hex)
+                                }
+                            }
+                        })
+                    }))])]], 2)])])
+                }
                 , NameColorView = function () {
                     var x = this
                         , P = x._self._c;
                     return P("div", {
                         staticClass: "ext-perks perk-split"
-                    }, [P("div", {
+                    }, [aetStyleModal(x, P), P("div", {
                         staticClass: "perk-split-left"
                     }, [P("div", {
-                        staticClass: "section row name-color-section",
-                        class: {
-                            "rv-open": "name" === x.colorModal
-                        }
+                        staticClass: "section row name-color-section"
                     }, [P("div", {
                         staticClass: "header"
                     }, [P("span", {
@@ -14634,49 +14817,14 @@
                         }
                     }, [x._v("Not showing")]) : x._e()]), x._v(" "), P("div", {
                         staticClass: "options"
-                    }, [x.enabled ? [P("button", {
-                        staticClass: "rv-tile",
-                        attrs: {
-                            type: "button"
-                        },
-                        on: {
-                            click: function () {
-                                x.colorModal = "name"
-                            }
-                        }
+                    }, [x.enabled ? [P("div", {
+                        staticClass: "perk-color-wrapper"
                     }, [P("span", {
-                        staticClass: "rv-tile-label",
-                        class: {
-                            "aetlis-grad": x.gradOn && x.grads.length > 1
-                        },
-                        style: x.gradOn && x.grads.length > 1 ? x.gradPreview : {
-                            color: "#" + x.hex
-                        }
-                    }, [x._v(x._s(x.name || "Name"))])]), "name" === x.colorModal ? P("div", {
-                        staticClass: "rv-backdrop",
-                        on: {
-                            click: function () {
-                                x.colorModal = ""
-                            }
-                        }
-                    }) : x._e(), P("div", {
-                        staticClass: "dns-pick"
-                    }, [P("div", {
-                        staticClass: "rv-modal-head"
-                    }, [P("span", [x._v("Name color")]), P("button", {
-                        staticClass: "rv-modal-x",
-                        attrs: {
-                            type: "button"
-                        },
-                        on: {
-                            click: function () {
-                                x.colorModal = ""
-                            }
-                        }
-                    }, [x._v("×")])]), P("div", {
-                        staticClass: "dns-name-line"
-                    }, [P("input", {
-                        staticClass: "dns-name",
+                        staticClass: "perk-field-label"
+                    }, [x._v("Name")]), x._v(" "), P("span", {
+                        staticClass: "perk-color-label"
+                    }, [x._v("Color")]), x._v(" "), P("input", {
+                        staticClass: "perk-name",
                         attrs: {
                             type: "text",
                             spellcheck: "false",
@@ -14691,138 +14839,31 @@
                                 P.target.composing || (x.name = P.target.value)
                             }
                         }
-                    }), x._v(" "), P("button", {
-                        staticClass: "dns-set",
+                    }), x._v(" "), P("span", {
+                        staticClass: "perk-color-option"
+                    }, [P("button", {
+                        staticClass: "perk-style-open",
+                        style: x.colorChip("name"),
                         attrs: {
                             type: "button",
+                            tip: "Choose name color"
+                        },
+                        on: {
+                            click: function () {
+                                x.styleOpen = "name"
+                            }
+                        }
+                    })]), x._v(" "), P("button", {
+                        staticClass: "perk-color-update",
+                        attrs: {
                             disabled: !x.canSet
                         },
                         on: {
                             click: x.commit
                         }
                     }, [x._v("Set")])]), x._v(" "), P("div", {
-                        staticClass: "dns-heading"
-                    }, [x._v("Choose Effect")]), x._v(" "), P("div", {
-                        staticClass: "dns-effects"
-                    }, [P("button", {
-                        staticClass: "dns-effect",
-                        class: {
-                            "is-on": !x.gradOn
-                        },
-                        attrs: {
-                            type: "button"
-                        },
-                        on: {
-                            click: function () {
-                                x.pickEffect(!1)
-                            }
-                        }
-                    }, [P("span", {
-                        staticClass: "dns-effect-label",
-                        style: {
-                            color: "#" + x.hex
-                        }
-                    }, [x._v("Solid")])]), x._v(" "), P("button", {
-                        staticClass: "dns-effect",
-                        class: {
-                            "is-on": x.gradOn
-                        },
-                        attrs: {
-                            type: "button"
-                        },
-                        on: {
-                            click: function () {
-                                x.pickEffect(!0)
-                            }
-                        }
-                    }, [P("span", {
-                        staticClass: "dns-effect-label",
-                        class: {
-                            "aetlis-grad": x.gradOn && x.grads.length > 1
-                        },
-                        style: x.gradOn && x.grads.length > 1 ? x.gradPreview : {
-                            color: "#" + x.hex
-                        }
-                    }, [x._v("Gradient")])])]), x._v(" "), P("div", {
-                        staticClass: "dns-heading"
-                    }, [x._v("Choose Colour")]), x._v(" "), P("div", {
-                        staticClass: "dns-colors",
-                        class: {
-                            "is-gradient": x.gradOn
-                        }
-                    }, [x.gradOn ? P("div", {
-                        staticClass: "dns-grad-custom",
-                        style: {
-                            backgroundImage: "linear-gradient(90deg," + x.grads.map(function (h) {
-                                return "#" + h
-                            }).join(",") + ")"
-                        }
-                    }, x._l(x.grads, (function (h, i) {
-                        return P("span", {
-                            key: i,
-                            staticClass: "dns-stop"
-                        }, [P("color-option", {
-                            attrs: {
-                                Nm: h
-                            },
-                            on: {
-                                input: function (hex) {
-                                    x.setStop(i, hex)
-                                }
-                            }
-                        })], 1)
-                    })), 2) : P("div", {
-                        staticClass: "dns-custom"
-                    }, [P("color-option", {
-                        attrs: {
-                            Nm: x.hex
-                        },
-                        on: {
-                            input: x.setHex
-                        }
-                    })], 1), x._v(" "), P("div", {
-                        staticClass: "dns-presets"
-                    }, [x.gradOn ? x._l([["2aaea6", "ffc490"], ["26b164", "90eaff"], ["e45eff", "267de0"], ["903cda", "2cda8e"], ["efb4aa", "e46ce2"], ["df4232", "bd8fff"], ["f5983c", "e55ae7"], ["e4541e", "65d7e4"]], (function (pair) {
-                        return P("button", {
-                            key: pair.join("-"),
-                            staticClass: "dns-swatch dns-swatch-grad",
-                            class: {
-                                "is-on": x.grads.length === 2 && x.grads[0] === pair[0] && x.grads[1] === pair[1]
-                            },
-                            style: {
-                                backgroundImage: "linear-gradient(90deg,#" + pair[0] + ",#" + pair[1] + ")"
-                            },
-                            attrs: {
-                                type: "button"
-                            },
-                            on: {
-                                click: function () {
-                                    x.pickGradPair(pair[0], pair[1])
-                                }
-                            }
-                        })
-                    })) : x._l(["18daad", "24e36d", "1c98eb", "c32aff", "fc1965", "c6a615", "0a9d7b", "0fad4b", "0b69a7", "a913e5", "da0149", "f93722"], (function (h) {
-                        return P("button", {
-                            key: h,
-                            staticClass: "dns-swatch",
-                            class: {
-                                "is-on": x.hex === h
-                            },
-                            style: {
-                                backgroundColor: "#" + h
-                            },
-                            attrs: {
-                                type: "button"
-                            },
-                            on: {
-                                click: function () {
-                                    x.pickSolid(h)
-                                }
-                            }
-                        })
-                    }))], 2)]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
-                    }, [x._v("Color only when Nickname matches. Name is reserved in the extension DB — others can't claim it.")])])] : [P("div", {
+                    }, [x._v("Color only when Nickname matches. Name is reserved in the extension DB — others can't claim it.")])] : [P("div", {
                         staticClass: "confirm-row"
                     }, [P("span", [x.reservedName ? [x._v("Reserved name "), P("b", [x._v(x._s(x.reservedName))])] : [x._v("Shows in chat, minimap, name and leaderboard. Name is exclusive.")]], 2), x._v(" "), P("button", {
                         staticClass: "confirm-button",
@@ -14857,10 +14898,7 @@
                     })], 1)])])]), x._v(" "), P("div", {
                         staticClass: "perk-split-right"
                     }, [P("div", {
-                        staticClass: "section row cell-color-section",
-                        class: {
-                            "rv-open": "cell" === x.colorModal
-                        }
+                        staticClass: "section row cell-color-section"
                     }, [P("div", {
                         staticClass: "header"
                     }, [P("span", {
@@ -14877,81 +14915,52 @@
                         }
                     }, [x._v(" ")])], 1), x._v(" "), P("div", {
                         staticClass: "options"
+                    }, [P("div", {
+                        staticClass: "perk-color-wrapper cell-color-row"
+                    }, [P("span", [x._v("Hex")]), x._v(" "), P("span", {
+                        staticClass: "perk-color-label"
+                    }, [x._v("Color")]), x._v(" "), P("input", {
+                        staticClass: "perk-name cell-hex",
+                        attrs: {
+                            type: "text",
+                            spellcheck: "false",
+                            maxlength: "7",
+                            placeholder: "#000000"
+                        },
+                        domProps: {
+                            value: "#" + x.cellHex
+                        },
+                        on: {
+                            input: function (P) {
+                                x.setCellHex(P.target.value)
+                            }
+                        }
+                    }), x._v(" "), P("span", {
+                        staticClass: "perk-color-option"
                     }, [P("button", {
-                        staticClass: "rv-tile rv-tile-color",
-                        style: {
-                            background: "#" + x.cellHex
-                        },
+                        staticClass: "perk-style-open",
+                        style: x.colorChip("cell"),
                         attrs: {
-                            type: "button"
+                            type: "button",
+                            tip: "Choose cell color"
                         },
                         on: {
                             click: function () {
-                                x.colorModal = "cell"
+                                x.styleOpen = "cell"
                             }
                         }
-                    }), "cell" === x.colorModal ? P("div", {
-                        staticClass: "rv-backdrop",
-                        on: {
-                            click: function () {
-                                x.colorModal = ""
-                            }
-                        }
-                    }) : x._e(), P("div", {
-                        staticClass: "dns-sheet"
-                    }, [P("div", {
-                        staticClass: "rv-modal-head"
-                    }, [P("span", [x._v("Cell color")]), P("button", {
-                        staticClass: "rv-modal-x",
+                    })]), x._v(" "), P("button", {
+                        staticClass: "perk-color-update",
                         attrs: {
-                            type: "button"
+                            disabled: !x.canSetCell
                         },
                         on: {
-                            click: function () {
-                                x.colorModal = ""
-                            }
+                            click: x.commitCell
                         }
-                    }, [x._v("×")])]), P("div", {
-                        staticClass: "dns-heading"
-                    }, [x._v("Choose Colour")]), x._v(" "), P("div", {
-                        staticClass: "dns-colors"
-                    }, [P("div", {
-                        staticClass: "dns-custom"
-                    }, [P("color-option", {
-                        attrs: {
-                            Nm: x.cellHex
-                        },
-                        on: {
-                            input: x.setCellHex
-                        }
-                    })], 1), x._v(" "), P("div", {
-                        staticClass: "dns-presets"
-                    }, x._l(["000000", "ffffff", "3d7eff", "e64a30", "2ecc71", "9b59b6", "f1c40f", "eb459e", "5865f2", "1abc9c", "e67e22", "95a5a6"], (function (h) {
-                        return P("button", {
-                            key: h,
-                            staticClass: "dns-swatch",
-                            class: {
-                                "is-on": x.cellHex === h
-                            },
-                            style: {
-                                backgroundColor: "#" + h
-                            },
-                            attrs: {
-                                type: "button"
-                            },
-                            on: {
-                                click: function () {
-                                    x.setCellHex(h)
-                                }
-                            }
-                        })
-                    })), 2)]), x._v(" "), P("div", {
+                    }, [x._v("Set")])]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
-                    }, [x._v("Saved for your account. Other extension users see this color on your cells.")])])])]), x._v(" "), P("div", {
-                        staticClass: "section row border-section",
-                        class: {
-                            "rv-open": "border" === x.colorModal
-                        }
+                    }, [x._v("Saved for your account. Other extension users see this color on your cells.")]), ])]), x._v(" "), P("div", {
+                        staticClass: "section row border-section"
                     }, [P("div", {
                         staticClass: "header"
                     }, [P("span", {
@@ -14968,79 +14977,52 @@
                         }
                     }, [x._v(" ")])], 1), x._v(" "), P("div", {
                         staticClass: "options"
+                    }, [P("div", {
+                        staticClass: "border-line"
+                    }, [P("label", {
+                        staticClass: "border-hex"
+                    }, [P("span", [x._v("Hex")]), P("input", {
+                        staticClass: "perk-name cell-hex",
+                        attrs: {
+                            type: "text",
+                            spellcheck: "false",
+                            maxlength: "7",
+                            placeholder: "#ffffff"
+                        },
+                        domProps: {
+                            value: "#" + x.borderHex
+                        },
+                        on: {
+                            input: function (P) {
+                                x.setBorderHex(P.target.value)
+                            }
+                        }
+                    })]), x._v(" "), P("span", {
+                        staticClass: "perk-color-option"
                     }, [P("button", {
-                        staticClass: "rv-tile rv-tile-color",
-                        style: {
-                            background: "#" + x.borderHex,
-                            boxShadow: "inset 0 0 0 3px #" + x.borderHex + ", inset 0 0 0 6px #1e1f22"
-                        },
+                        staticClass: "perk-style-open",
+                        style: x.colorChip("border"),
                         attrs: {
-                            type: "button"
+                            type: "button",
+                            tip: "Choose border color"
                         },
                         on: {
                             click: function () {
-                                x.colorModal = "border"
+                                x.styleOpen = "border"
                             }
                         }
-                    }), "border" === x.colorModal ? P("div", {
-                        staticClass: "rv-backdrop",
-                        on: {
-                            click: function () {
-                                x.colorModal = ""
-                            }
-                        }
-                    }) : x._e(), P("div", {
-                        staticClass: "dns-sheet"
-                    }, [P("div", {
-                        staticClass: "rv-modal-head"
-                    }, [P("span", [x._v("Border")]), P("button", {
-                        staticClass: "rv-modal-x",
+                    })]), x._v(" "), P("button", {
+                        staticClass: "perk-color-update",
                         attrs: {
-                            type: "button"
+                            disabled: !x.canSetBorder
                         },
                         on: {
-                            click: function () {
-                                x.colorModal = ""
-                            }
+                            click: x.commitBorder
                         }
-                    }, [x._v("×")])]), P("div", {
-                        staticClass: "dns-heading"
-                    }, [x._v("Choose Colour")]), x._v(" "), P("div", {
-                        staticClass: "dns-colors"
-                    }, [P("div", {
-                        staticClass: "dns-custom"
-                    }, [P("color-option", {
-                        attrs: {
-                            Nm: x.borderHex
-                        },
-                        on: {
-                            input: x.setBorderHex
-                        }
-                    })], 1), x._v(" "), P("div", {
-                        staticClass: "dns-presets"
-                    }, x._l(["ffffff", "000000", "e64a30", "f1c40f", "2ecc71", "3498db", "9b59b6", "eb459e", "5865f2", "e67e22", "1abc9c", "95a5a6"], (function (h) {
-                        return P("button", {
-                            key: h,
-                            staticClass: "dns-swatch",
-                            class: {
-                                "is-on": x.borderHex === h
-                            },
-                            style: {
-                                backgroundColor: "#" + h
-                            },
-                            attrs: {
-                                type: "button"
-                            },
-                            on: {
-                                click: function () {
-                                    x.setBorderHex(h)
-                                }
-                            }
-                        })
-                    })), 2)]), x._v(" "), P("label", {
-                        staticClass: "dns-thick"
-                    }, [P("span", [x._v("Thickness")]), P("input", {
-                        staticClass: "dns-thick-input",
+                    }, [x._v("Set")]), x._v(" "), P("label", {
+                        staticClass: "aetlis-thick-inline"
+                    }, [P("input", {
+                        staticClass: "perk-name aetlis-thick-input",
                         attrs: {
                             type: "number",
                             min: "2",
@@ -15058,9 +15040,9 @@
                                 x.setBorderSize(P.target.value, !0)
                             }
                         }
-                    }), P("span", [x._v("px")])]), x._v(" "), P("div", {
+                    }), P("span", [x._v("px")])])]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
-                    }, [x._v("Shows around your cell only when skins are hidden, or when you have no skin.")])])])]), x._v(" "), P("div", {
+                    }, [x._v("Shows around your cell only when skins are hidden, or when you have no skin.")])])]), x._v(" "), P("div", {
                         staticClass: "section row hats-section"
                     }, [P("div", {
                         staticClass: "header"
@@ -17156,7 +17138,7 @@
                     ref: "overlay",
                     staticClass: "color-picker-overlay"
                 }), x._v(" "), P("div", {
-                    staticClass: "color-picker fade-box discord-picker",
+                    staticClass: "color-picker fade-box",
                     style: {
                         top: x.Gp + "px",
                         left: x.Hp + "px"
@@ -17238,31 +17220,7 @@
                             }
                         ]
                     }
-                })]), x._v(" "), P("div", {
-                    staticClass: "dns-suggested"
-                }, x._l(["aaa89e", "1b1b18", "c583af", "838ec5", "83c599"], (function (h) {
-                    return P("button", {
-                        key: h,
-                        staticClass: "dns-suggested-swatch",
-                        style: {
-                            backgroundColor: "#" + h
-                        },
-                        attrs: {
-                            type: "button"
-                        },
-                        on: {
-                            mousedown: function (ev) {
-                                ev.preventDefault(),
-                                    ev.stopPropagation()
-                            },
-                            click: function (ev) {
-                                ev.preventDefault(),
-                                    ev.stopPropagation(),
-                                    x.pickSuggested(h)
-                            }
-                        }
-                    })
-                })), 2), x._v(" "), x.grad ? P("div", {
+                })]), x._v(" "), x.grad ? P("div", {
                     staticClass: "aetlis-picker-stops"
                 }, [P("button", {
                     staticClass: "aetlis-picker-grad",
@@ -17419,10 +17377,6 @@
                     },
                     gh() {
                         this.Lp = this.Mp,
-                            this.Np(1, !0)
-                    },
-                    pickSuggested(hex) {
-                        this.Lp = String(hex || "").replace(/^#/, "").toLowerCase(),
                             this.Np(1, !0)
                     },
                     Np(x, P) {
