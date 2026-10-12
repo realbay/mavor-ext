@@ -1504,7 +1504,7 @@
     window.__aetlisReadStops = function (raw) {
         var parts = String(raw || "").split(",")
             , out = [];
-        for (var i = 0; i < parts.length && out.length < 4; i++) {
+        for (var i = 0; i < parts.length && out.length < 5; i++) {
             var hex = parts[i].replace(/^#/, "").trim().toLowerCase();
             if (/^[0-9a-f]{6}$/.test(hex))
                 out.push(hex)
@@ -1534,7 +1534,7 @@
     };
     window.__aetlisNameCss = function (color) {
         if (window.__aetlisIsGrad(color))
-            return { backgroundImage: color };
+            return { "--aetlis-fill": color };
         return { color: color || "#ffffff" }
     };
     window.__aetlisChatPlain = function (text) {
@@ -2245,18 +2245,25 @@
                                 L.drawCircle(0, 0, 5),
                                 L.endFill(),
                                 L)),
-                            P && H.addChild(function (x, P) {
+                            P && H.addChild(function (x, P, pid) {
+                                var stops = null;
+                                try {
+                                    var pl = window.__aetlisGame && window.__aetlisGame.Ya && window.__aetlisGame.Ya.Bc(pid);
+                                    if (pl && pl._aetGrad && pl._aetGrad.length > 1)
+                                        stops = pl._aetGrad.map(function (h) { return "#" + String(h).replace(/^#/, "") })
+                                } catch (e) {}
                                 var j = new PIXI.Text(x, {
                                     strokeThickness: 4,
                                     lineJoin: "round",
                                     fontFamily: "Nunito",
-                                    fill: P,
+                                    fill: stops || P,
+                                    fillGradientType: stops ? 1 : 0,
                                     fontSize: 12
                                 });
                                 return j.anchor.set(.5),
                                     j.pivot.y = 15,
                                     j
-                            }(P, j)),
+                            }(P, j, x)),
                             Y[x] = H
                     },
                     Fa(x) {
@@ -2497,16 +2504,30 @@
                         this.tb.wa.render(wrap2, this.Ab, !1);
                         wrap2.destroy(!0)
                     }
-                    if (this._aetBorderHex && !this.dc) {
-                        var tb = D / 2
-                            , wrapB = new PIXI.Container
-                            , GB = new PIXI.Graphics;
-                        wrapB.position.set(tb, tb);
-                        GB.lineStyle(this._aetBorderSize || 8, parseInt(this._aetBorderHex, 16), 1, 0);
-                        GB.drawCircle(0, 0, Math.max(2, tb - 8));
-                        wrapB.addChild(GB);
-                        this.tb.wa.render(wrapB, this.Ab, !1);
-                        wrapB.destroy(!0)
+                    var skinOn = !!(this.fc && this.fc.visible);
+                    if (this._aetBorderHex && !skinOn) {
+                        var bKey = this._aetBorderHex + ":" + (this._aetBorderSize || 8);
+                        if (!this._aetBorderSprite || this._aetBorderKey !== bKey) {
+                            if (this._aetBorderSprite)
+                                this._aetBorderSprite.destroy(!0);
+                            var S = 1024
+                                , thick = Math.max(2, this._aetBorderSize || 8) * (S / D)
+                                , cvs = document.createElement("canvas");
+                            cvs.width = cvs.height = S;
+                            var pen = cvs.getContext("2d");
+                            pen.strokeStyle = "#" + this._aetBorderHex;
+                            pen.lineWidth = thick;
+                            pen.beginPath();
+                            pen.arc(S / 2, S / 2, S / 2 - thick / 2 - 1, 0, Math.PI * 2);
+                            pen.stroke();
+                            var tex = PIXI.Texture.from(cvs);
+                            tex.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR;
+                            this._aetBorderSprite = new PIXI.Sprite(tex);
+                            this._aetBorderSprite.width = D;
+                            this._aetBorderSprite.height = D;
+                            this._aetBorderKey = bKey
+                        }
+                        this.tb.wa.render(this._aetBorderSprite, this.Ab, !1)
                     }
                 }
                 _aetSetTrigOutline(on) {
@@ -2614,14 +2635,18 @@
                 }
                 Vb() {
                     var x, P = "Unnamed" === this.Tb, j = "Long Name" === this.Tb, $ = P ? "" : this.Tb, L = this.lb, H = this.Qb;
-                    if (x = P || j ? this.Pb(null) : this.Pb(this.Ub),
-                        this.Wb($, x),
-                        !P && !j && this.Xb.texture.width > M.Yb && (j = !0,
-                            $ = "Long Name",
-                            x = this.Pb(null),
-                            this.Wb($, x)),
-                        this.lb = P ? "Unnamed" : $,
-                        L !== this.lb || H !== this.Qb) {
+                    x = P || j ? this.Pb(null) : this.Pb(this.Ub);
+                    this.Wb($, x);
+                    if (!P && !j && this.Xb.texture.width > M.Yb) {
+                        j = !0;
+                        $ = "Long Name";
+                        x = this.Pb(null);
+                        this.Wb($, x)
+                    }
+                    this.lb = P ? "Unnamed" : $;
+                    var gradSig = this._aetGrad && this._aetGrad.length > 1 ? this._aetGrad.join(",") : "";
+                    if (L !== this.lb || H !== this.Qb || this._aetSentGrad !== gradSig) {
+                        this._aetSentGrad = gradSig;
                         var D = null != x ? x : this.yb ? 16747520 : null;
                         this.tb.R.$emit(O.Ka, this.Ga, $, x, D)
                     }
@@ -2666,6 +2691,7 @@
                             self.bc(),
                                 self.fc = self.Nb(source),
                                 self.fc.mask = c(),
+                                self.fc.visible = !!self.dc,
                                 self.Cb.addChild(self.fc.mask, self.fc),
                                 self.Eb()
                         } catch (e) {
@@ -6422,7 +6448,7 @@
                             Ga: M,
                             Xi: 1 + j.length,
                             hi: $.lb,
-                            Yi: $.Rb || "#ffffff",
+                            Yi: $._aetGradCss || $.Rb || "#ffffff",
                             Zi: !!$.Qb,
                             fi: $.vb.perk_badges
                         })
@@ -6446,11 +6472,12 @@
                         else {
                             var O = $.Ga && x.Ya.Bc($.Ga);
                             $.hi = O ? O.lb : "N/A",
-                                $.Yi = O && O.Rb || "#ffffff",
+                                $.Yi = O && (O._aetGradCss || O.Rb) || "#ffffff",
                                 $.fi = O && O.vb.perk_badges
                         }
                         8 & M && ($.Cg = P.ff()),
                             16 & M && ($.Yi = "#" + ("00" + P.Xd().toString(16)).slice(-2) + ("00" + P.Xd().toString(16)).slice(-2) + ("00" + P.Xd().toString(16)).slice(-2)),
+                            $.Ga && x.Ya.Bc($.Ga) && x.Ya.Bc($.Ga)._aetGradCss && ($.Yi = x.Ya.Bc($.Ga)._aetGradCss),
                             32 & M && ($.Zi = !0),
                             64 & M && ($.bj = P.ff());
                         if (hideBots) {
@@ -6649,7 +6676,7 @@
                             ki: $t,
                             gi: qt.lb
                         };
-                        qt.Rb && (zt.li = qt.Rb),
+                        (qt._aetGradCss || qt.Rb) && (zt.li = qt._aetGradCss || qt.Rb),
                             qt.vb.perk_badges && (zt.fi = qt.vb.perk_badges),
                             M.R.$emit(B.qj, zt);
                         break;
@@ -8004,7 +8031,29 @@
                         attrs: {
                             src: u,
                             alt: "",
-                            draggable: "false"
+                            draggable: "false",
+                            title: "Click to copy"
+                        },
+                        on: {
+                            click: function (ev) {
+                                ev.preventDefault();
+                                ev.stopPropagation();
+                                var done = function () {
+                                    ev.target && (ev.target.setAttribute("title", "Copied"),
+                                        setTimeout(function () { ev.target && ev.target.setAttribute("title", "Click to copy") }, 900))
+                                };
+                                if (navigator.clipboard && navigator.clipboard.writeText)
+                                    navigator.clipboard.writeText(u).then(done).catch(function () {});
+                                else {
+                                    var ta = document.createElement("textarea");
+                                    ta.value = u;
+                                    document.body.appendChild(ta);
+                                    ta.select();
+                                    try { document.execCommand("copy") } catch (e) {}
+                                    ta.remove();
+                                    done()
+                                }
+                            }
                         }
                     })
                 })))])
@@ -14057,10 +14106,9 @@
                         savedBorderSize: Math.max(2, Math.min(24, parseInt(localStorage.aetlisCellBorderSize || "8", 10) || 8)),
                         gradOn: "true" === localStorage.aetlisNameGradientOn,
                         savedGradOn: "true" === localStorage.aetlisNameGradientOn,
-                        gradA: (window.__aetlisReadStops(localStorage.aetlisNameGradient) || [hex, "3d7eff"])[0],
-                        gradB: (window.__aetlisReadStops(localStorage.aetlisNameGradient) || [hex, "3d7eff"])[1] || "3d7eff",
-                        savedGradA: (window.__aetlisReadStops(localStorage.aetlisNameGradient) || [hex, "3d7eff"])[0],
-                        savedGradB: (window.__aetlisReadStops(localStorage.aetlisNameGradient) || [hex, "3d7eff"])[1] || "3d7eff",
+                        grads: (window.__aetlisReadStops(localStorage.aetlisNameGradient) || [hex, "5865f2"]).slice(),
+                        savedGrads: (window.__aetlisReadStops(localStorage.aetlisNameGradient) || [hex, "5865f2"]).join(","),
+                        gradPick: 0,
                         name: name,
                         savedName: name,
                         badge: window.__aetlisBadgeBit() || 0,
@@ -14077,7 +14125,7 @@
                         return this.savedName || ("string" == typeof localStorage.nickname ? localStorage.nickname.trim() : "")
                     },
                     canSet() {
-                        return this.name.trim() !== this.savedName || this.hex !== this.savedHex || !this.enabled || this.gradOn !== this.savedGradOn || this.gradA !== this.savedGradA || this.gradB !== this.savedGradB
+                        return this.name.trim() !== this.savedName || this.hex !== this.savedHex || !this.enabled || this.gradOn !== this.savedGradOn || this.grads.join(",") !== this.savedGrads
                     },
                     canSetCell() {
                         return this.cellHex !== this.savedCellHex || !this.cellOn
@@ -14086,9 +14134,13 @@
                         return this.borderHex !== this.savedBorderHex || !this.borderOn || this.borderSize !== this.savedBorderSize
                     },
                     gradPreview() {
-                        if (!this.gradOn)
+                        if (!this.gradOn || this.grads.length < 2)
                             return { color: "#" + this.hex };
-                        return { backgroundImage: "linear-gradient(90deg,#" + this.gradA + ",#" + this.gradB + ")" }
+                        return { "--aetlis-fill": "linear-gradient(90deg," + this.grads.map(function (h) { return "#" + h }).join(",") + ")" }
+                    },
+                    gradBar() {
+                        var stops = this.grads.length > 1 ? this.grads : [this.hex, this.hex];
+                        return { backgroundImage: "linear-gradient(90deg," + stops.map(function (h) { return "#" + h }).join(",") + ")" }
                     },
                     selectedHat() {
                         for (var i = 0; i < this.hats.length; i++)
@@ -14120,10 +14172,9 @@
                             localStorage.aetlisNameColor = this.hex,
                             localStorage.aetlisNameColorOn = "true",
                             localStorage.aetlisNameGradientOn = this.gradOn ? "true" : "false",
-                            localStorage.aetlisNameGradient = this.gradA + "," + this.gradB,
+                            localStorage.aetlisNameGradient = this.grads.join(","),
                             this.savedGradOn = this.gradOn,
-                            this.savedGradA = this.gradA,
-                            this.savedGradB = this.gradB,
+                            this.savedGrads = this.grads.join(","),
                             window.dispatchEvent(new Event("aetlis-name-color")),
                             window.__aetlisRefreshNameColor && window.__aetlisRefreshNameColor(),
                             window.__aetlisPublishPerks && window.__aetlisPublishPerks(),
@@ -14170,11 +14221,48 @@
                     toggleGrad() {
                         this.gradOn = !this.gradOn
                     },
-                    setGrad(which, x) {
+                    pickGrad(i) {
+                        this.gradPick = i
+                    },
+                    setGradHex(x) {
                         x = String(x || "").replace(/^#/, "");
-                        if (!/^[0-9a-fA-F]{6}$/.test(x))
+                        if (!/^[0-9a-fA-F]{6}$/.test(x) || this.gradPick < 0 || this.gradPick >= this.grads.length)
                             return;
-                        "b" === which ? this.gradB = x.toLowerCase() : this.gradA = x.toLowerCase()
+                        this.grads.splice(this.gradPick, 1, x.toLowerCase())
+                    },
+                    addGradStop() {
+                        if (this.grads.length >= 5)
+                            return;
+                        var last = this.grads[this.grads.length - 1] || "ffffff";
+                        this.grads.push(last === "eb459e" ? "fee75c" : "eb459e");
+                        this.gradPick = this.grads.length - 1
+                    },
+                    removeGradStop() {
+                        if (this.grads.length <= 2)
+                            return;
+                        this.grads.splice(this.gradPick, 1);
+                        if (this.gradPick >= this.grads.length)
+                            this.gradPick = this.grads.length - 1
+                    },
+                    toggleCell() {
+                        this.cellOn = !this.cellOn;
+                        localStorage.aetlisCellColorOn = this.cellOn ? "true" : "false";
+                        if (this.cellOn)
+                            localStorage.aetlisCellColor = this.cellHex,
+                                this.savedCellHex = this.cellHex;
+                        window.__aetlisApplyCellColors && window.__aetlisApplyCellColors();
+                        window.__aetlisPublishPerks && window.__aetlisPublishPerks()
+                    },
+                    toggleBorder() {
+                        this.borderOn = !this.borderOn;
+                        localStorage.aetlisCellBorderOn = this.borderOn ? "true" : "false";
+                        if (this.borderOn)
+                            localStorage.aetlisCellBorder = this.borderHex,
+                                localStorage.aetlisCellBorderSize = String(this.borderSize),
+                                this.savedBorderHex = this.borderHex,
+                                this.savedBorderSize = this.borderSize;
+                        window.__aetlisApplyCellColors && window.__aetlisApplyCellColors();
+                        window.__aetlisPublishPerks && window.__aetlisPublishPerks()
                     },
                     setCellHex(x) {
                         x = String(x || "").replace(/^#/, ""),
@@ -14495,46 +14583,94 @@
                     }, [x._v("Set")])]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
                     }, [x._v("Color only when Nickname matches. Name is reserved in the extension DB — others can't claim it.")]), x._v(" "), P("div", {
-                        staticClass: "perk-color-wrapper cell-color-row aetlis-grad-row"
-                    }, [P("span", {
-                        staticClass: "perk-color-label"
-                    }, [x._v("Gradient")]), x._v(" "), P("button", {
-                        staticClass: "perk-color-update aetlis-grad-toggle",
+                        staticClass: "aetlis-grad-box"
+                    }, [P("div", {
+                        staticClass: "aetlis-grad-head"
+                    }, [P("span", [x._v("Gradient")]), P("button", {
+                        staticClass: "aetlis-switch",
                         class: {
                             on: x.gradOn
                         },
                         attrs: {
-                            type: "button"
+                            type: "button",
+                            tip: "Blend several colors across the name"
                         },
                         on: {
                             click: x.toggleGrad
                         }
-                    }, [x._v(x.gradOn ? "On" : "Off")]), x._v(" "), x.gradOn ? [P("span", {
-                        staticClass: "perk-color-option"
-                    }, [P("color-option", {
-                        attrs: {
-                            Nm: x.gradA
-                        },
-                        on: {
-                            input: function (v) {
-                                x.setGrad("a", v)
-                            }
-                        }
-                    })], 1), x._v(" "), P("span", {
-                        staticClass: "perk-color-option"
-                    }, [P("color-option", {
-                        attrs: {
-                            Nm: x.gradB
-                        },
-                        on: {
-                            input: function (v) {
-                                x.setGrad("b", v)
-                            }
-                        }
-                    })], 1), x._v(" "), P("span", {
+                    })]), x.gradOn ? [P("span", {
                         staticClass: "aetlis-grad-preview aetlis-grad",
                         style: x.gradPreview
-                    }, [x._v(x._s((x.name || x.reservedName || "Name").slice(0, 15)))])] : x._e()], 2)] : [P("div", {
+                    }, [x._v(x._s((x.name || x.reservedName || "Name").slice(0, 15)))]), P("div", {
+                        staticClass: "aetlis-grad-track",
+                        style: x.gradBar
+                    }, x._l(x.grads, (function (h, i) {
+                        return P("button", {
+                            key: i,
+                            staticClass: "aetlis-stop",
+                            class: {
+                                on: x.gradPick === i
+                            },
+                            style: {
+                                left: (x.grads.length < 2 ? 0 : 100 * i / (x.grads.length - 1)) + "%",
+                                backgroundColor: "#" + h
+                            },
+                            attrs: {
+                                type: "button"
+                            },
+                            on: {
+                                click: function () {
+                                    return x.pickGrad(i)
+                                }
+                            }
+                        })
+                    }
+                    )).concat([P("button", {
+                        staticClass: "aetlis-stop-add",
+                        attrs: {
+                            type: "button",
+                            tip: "Add a color",
+                            disabled: x.grads.length >= 5
+                        },
+                        on: {
+                            click: x.addGradStop
+                        }
+                    }, [x._v("+")])])), P("div", {
+                        staticClass: "aetlis-grad-edit"
+                    }, [P("span", {
+                        staticClass: "perk-color-option"
+                    }, [P("color-option", {
+                        attrs: {
+                            Nm: x.grads[x.gradPick] || x.hex
+                        },
+                        on: {
+                            input: x.setGradHex
+                        }
+                    })], 1), x._v(" "), P("input", {
+                        staticClass: "perk-name cell-hex",
+                        attrs: {
+                            type: "text",
+                            spellcheck: "false",
+                            maxlength: "7"
+                        },
+                        domProps: {
+                            value: "#" + (x.grads[x.gradPick] || x.hex)
+                        },
+                        on: {
+                            input: function (ev) {
+                                x.setGradHex(ev.target.value)
+                            }
+                        }
+                    }), x._v(" "), P("button", {
+                        staticClass: "perk-color-update",
+                        attrs: {
+                            type: "button",
+                            disabled: x.grads.length <= 2
+                        },
+                        on: {
+                            click: x.removeGradStop
+                        }
+                    }, [x._v("Remove")])])] : x._e()], 2)] : [P("div", {
                         staticClass: "confirm-row"
                     }, [P("span", [x.reservedName ? [x._v("Reserved name "), P("b", [x._v(x._s(x.reservedName))])] : [x._v("Shows in chat, minimap, name and leaderboard. Name is exclusive.")]], 2), x._v(" "), P("button", {
                         staticClass: "confirm-button",
@@ -14570,12 +14706,19 @@
                         staticClass: "section row cell-color-section"
                     }, [P("div", {
                         staticClass: "header"
-                    }, [x._v("Cell color"), !x.cellOn ? P("div", {
-                        staticClass: "right warning",
+                    }, [x._v("Cell color"), P("button", {
+                        staticClass: "aetlis-switch",
+                        class: {
+                            on: x.cellOn
+                        },
                         attrs: {
-                            tip: "Set a color so other players see it"
+                            type: "button",
+                            tip: x.cellOn ? "Turn cell color off" : "Turn cell color on"
+                        },
+                        on: {
+                            click: x.toggleCell
                         }
-                    }, [x._v("Not set")]) : x._e()]), x._v(" "), P("div", {
+                    })]), x._v(" "), P("div", {
                         staticClass: "options"
                     }, [P("div", {
                         staticClass: "perk-color-wrapper cell-color-row"
@@ -14617,6 +14760,20 @@
                     }, [x._v("Set")])]), x._v(" "), P("div", {
                         staticClass: "name-color-tip"
                     }, [x._v("Saved for your account. Other extension users see this color on your cells.")]), x._v(" "), P("div", {
+                        staticClass: "aetlis-subhead"
+                    }, [P("span", [x._v("Border")]), P("button", {
+                        staticClass: "aetlis-switch",
+                        class: {
+                            on: x.borderOn
+                        },
+                        attrs: {
+                            type: "button",
+                            tip: x.borderOn ? "Turn border off" : "Turn border on"
+                        },
+                        on: {
+                            click: x.toggleBorder
+                        }
+                    })]), x._v(" "), P("div", {
                         staticClass: "perk-color-wrapper cell-color-row"
                     }, [P("span", [x._v("Hex")]), x._v(" "), P("span", {
                         staticClass: "perk-color-label"
