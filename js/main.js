@@ -14579,7 +14579,9 @@
                         staticClass: "section row name-color-section"
                     }, [P("div", {
                         staticClass: "header"
-                    }, [x._v("Name color"), x.enabled && !x.savedName ? P("div", {
+                    }, [P("span", {
+                        staticClass: "perk-head-title"
+                    }, [x._v("Name color")]), x.enabled && !x.savedName ? P("div", {
                         staticClass: "right warning",
                         attrs: {
                             tip: "Set name and color so it shows in game"
@@ -14588,7 +14590,9 @@
                         staticClass: "options"
                     }, [x.enabled ? [P("div", {
                         staticClass: "perk-color-wrapper"
-                    }, [P("span", [x._v("Name")]), x._v(" "), P("span", {
+                    }, [P("span", {
+                        staticClass: "perk-field-label"
+                    }, [x._v("Name")]), x._v(" "), P("span", {
                         staticClass: "perk-color-label"
                     }, [x._v("Color")]), x._v(" "), P("input", {
                         staticClass: "perk-name",
@@ -14639,7 +14643,9 @@
                         staticClass: "section row badges-section"
                     }, [P("div", {
                         staticClass: "header"
-                    }, [x._v("Badges"), !x.badge ? P("div", {
+                    }, [P("span", {
+                        staticClass: "perk-head-title"
+                    }, [x._v("Badges")]), !x.badge ? P("div", {
                         staticClass: "right warning",
                         attrs: {
                             tip: "Click on a badge to use it"
@@ -14799,7 +14805,9 @@
                         staticClass: "section row hats-section"
                     }, [P("div", {
                         staticClass: "header"
-                    }, [x._v("Hats"), !x.hatUrl ? P("div", {
+                    }, [P("span", {
+                        staticClass: "perk-head-title"
+                    }, [x._v("Hats")]), !x.hatUrl ? P("div", {
                         staticClass: "right warning",
                         attrs: {
                             tip: "No hat equipped"

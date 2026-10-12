@@ -5673,7 +5673,7 @@ input[type=number].hide-arrows[data-v-2c5139e0] {
 .perk-color-wrapper[data-v-2c5139e0] {
     display: grid;
     grid-template-columns: 1fr 42px 50px;
-    grid-template-rows: 1fr 32px;
+    grid-template-rows: auto 32px;
     width: 100%
 }
 
@@ -11348,7 +11348,7 @@ canvas[data-v-4c95bd45] {
 .perk-color-wrapper {
     display: grid;
     grid-template-columns: 1fr 42px 50px;
-    grid-template-rows: 1fr 32px;
+    grid-template-rows: auto 32px;
     width: 100%;
     gap: 8px;
 }
@@ -13246,8 +13246,19 @@ body.dark-theme #admin-panel {
     gap: 4px 8px;
     grid-template-columns: minmax(0, 1fr) 42px 50px;
     grid-template-rows: auto 32px;
-    max-width: 280px;
+    max-width: none;
     width: 100%;
+}
+
+.ext-perks .perk-field-label,
+.ext-perks .perk-color-label {
+    color: #dadada;
+    grid-row: 1;
+}
+
+.ext-perks .perk-field-label {
+    grid-column: 1;
+    justify-self: start;
 }
 
 .ext-perks .cell-color-row {
@@ -13261,6 +13272,7 @@ body.dark-theme #admin-panel {
 }
 
 .ext-perks .perk-color-label {
+    grid-column: 2;
     text-align: center;
 }
 
@@ -15163,7 +15175,7 @@ input[type=range].slider::-webkit-slider-thumb {
     align-content: start;
     align-items: start;
     display: grid !important;
-    flex: 1 1 auto !important;
+    flex: 1 1 0 !important;
     flex-direction: unset !important;
     gap: 10px;
     grid-template-areas:
@@ -15183,46 +15195,53 @@ input[type=range].slider::-webkit-slider-thumb {
     display: contents;
 }
 
-.mavor-content .ext-perks .name-color-section {
+.mavor-content .ext-perks .name-color-section,
+.mavor-content .ext-perks .cell-color-section,
+.mavor-content .ext-perks .badges-section,
+.mavor-content .ext-perks .border-section {
     align-self: start;
-    grid-area: name;
+    justify-self: stretch;
     margin-bottom: 0 !important;
+    min-width: 0;
+    width: 100%;
+}
+
+.mavor-content .ext-perks .name-color-section {
+    grid-area: name;
 }
 
 .mavor-content .ext-perks .cell-color-section {
     grid-area: cell;
-    margin-bottom: 0 !important;
 }
 
 .mavor-content .ext-perks .badges-section {
     grid-area: badges;
-    margin-bottom: 0 !important;
 }
 
 .mavor-content .ext-perks .border-section {
     grid-area: border;
-    margin-bottom: 0 !important;
 }
 
 .mavor-content .ext-perks .border-line {
     align-items: end;
     display: flex;
     gap: 6px;
+    width: 100%;
 }
 
 .mavor-content .ext-perks .border-hex {
     display: flex;
-    flex: 1 1 auto;
+    flex: 1 1 0;
     flex-direction: column;
     gap: 4px;
-    min-width: 0;
+    min-width: 84px;
 }
 
 .mavor-content .ext-perks .border-hex .perk-name {
     grid-column: auto;
     grid-row: auto;
     min-width: 0;
-    width: 100%;
+    width: 100% !important;
 }
 
 .mavor-content .ext-perks .border-line .aetlis-thick-inline {
